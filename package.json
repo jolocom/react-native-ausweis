@@ -1,23 +1,24 @@
 {
-  "name": "react-native-ausweis-app",
-  "title": "React Native Ausweis App",
+  "name": "react-native-aa2-sdk",
+  "title": "React Native Aa2 Sdk",
   "version": "1.0.0",
   "description": "TODO",
-  "main": "index.js",
+  "main": "./js/index.js",
   "files": [
     "README.md",
     "android",
     "index.js",
     "ios",
-    "react-native-ausweis-app.podspec"
+    "react-native-aa2-sdk.podspec"
   ],
   "scripts": {
+    "build": "tsc -p ./tsconfig.json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/github_account/react-native-ausweis-app.git",
-    "baseUrl": "https://github.com/github_account/react-native-ausweis-app"
+    "url": "git+https://github.com/github_account/react-native-aa2-sdk.git",
+    "baseUrl": "https://github.com/github_account/react-native-aa2-sdk"
   },
   "keywords": [
     "react-native"
