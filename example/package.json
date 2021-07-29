@@ -26,5 +26,9 @@
   },
   "jest": {
     "preset": "react-native"
+  },
+ "volta": {
+    "node": "12.14.1",
+    "yarn": "1.22.10"
   }
 }
