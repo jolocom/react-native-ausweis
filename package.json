@@ -7,9 +7,9 @@
   "files": [
     "README.md",
     "android",
-    "index.js",
     "ios",
-    "react-native-aa2-sdk.podspec"
+    "react-native-aa2-sdk.podspec",
+    "js/*"
   ],
   "scripts": {
     "build": "tsc -p ./tsconfig.json",
