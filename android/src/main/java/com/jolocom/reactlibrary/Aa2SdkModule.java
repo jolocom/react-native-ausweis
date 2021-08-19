@@ -61,12 +61,14 @@ public class Aa2SdkModule extends ReactContextBaseJavaModule implements Activity
         final String packageName = this.reactContext.getApplicationContext().getPackageName();
         final Intent startSdkServiceIntent = new Intent(INITIAL_NAME).setPackage(packageName);
 
-        this.aa2ServiceConnection = new Aa2ServiceConnection(promise);
+        this.aa2ServiceConnection = new Aa2ServiceConnection();
         this.reactContext.bindService(
             startSdkServiceIntent,
             this.aa2ServiceConnection,
             Context.BIND_AUTO_CREATE
         );
+
+        promise.resolve("Ok");
     }
 
     @ReactMethod

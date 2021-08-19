@@ -6,7 +6,6 @@ import android.nfc.Tag;
 import android.os.IBinder;
 import android.os.RemoteException;
 
-import com.facebook.react.bridge.Promise;
 import com.governikus.ausweisapp2.IAusweisApp2Sdk;
 
 // Will connect to the AA2 background service. Stores the random session identifier
@@ -16,19 +15,12 @@ public class Aa2ServiceConnection implements ServiceConnection {
     private IAusweisApp2Sdk sdk;
     private Aa2SdkSession sdkSession;
 
-    // Only used to communicate back to React Native that the instantiation has completed
-    private final Promise promise;
-
-    public Aa2ServiceConnection(Promise promise) {
-        this.promise = promise;
-    }
-
     @Override
     public void onServiceConnected(ComponentName className, IBinder service)
     {
         try {
             this.sdk = IAusweisApp2Sdk.Stub.asInterface(service);
-            this.sdkSession = new Aa2SdkSession(promise);
+            this.sdkSession = new Aa2SdkSession();
 
             if (!this.sdk.connectSdk(this.sdkSession)) {
                 // TODO Throw error
