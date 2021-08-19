@@ -34,5 +34,8 @@ RCT_EXTERN_METHOD(getNewEvents:
                   rejecter :(RCTPromiseRejectBlock)reject
                   )
 
-RCT_EXTERN_METHOD(disconnectSdk)
+RCT_EXTERN_METHOD(disconnectSdk
+                  (RCTPromiseResolveBlock)resolve
+                  rejecter :(RCTPromiseRejectBlock)reject
+                  )
 @end

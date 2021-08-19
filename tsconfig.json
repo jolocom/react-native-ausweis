@@ -10,7 +10,7 @@
         "sourceMap": true,
         "suppressImplicitAnyIndexErrors": true,
         "outDir": "./js/",
-        "rootDir": "./",
+        "rootDir": "./src/",
         "experimentalDecorators": true
     },
     "filesGlob": [
