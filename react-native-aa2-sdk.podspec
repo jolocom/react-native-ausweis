@@ -20,10 +20,11 @@ Pod::Spec.new do |s|
   s.platforms    = { :ios => "9.0" }
   s.source       = { :git => "https://github.com/github_account/react-native-aa2-sdk.git", :tag => "#{s.version}" }
 
-  s.source_files = "ios/**/*.{h,c,cc,cpp,m,mm,swift}"
+  s.source_files = "ios/*.{h,c,cc,cpp,m,mm,swift}"
   s.requires_arc = true
 
   s.dependency "React"
+  s.vendored_frameworks = 'ios/Frameworks/AusweisApp2.xcframework'
   # ...
   # s.dependency "..."
 end

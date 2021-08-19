@@ -5,9 +5,10 @@ import { NativeModules } from 'react-native';
 
 const { Aa2Sdk } = NativeModules;
 
-export const initAa2Sdk = async () => {
-  return Aa2Sdk.initAASdk();
-};
+export const initAa2Sdk = async () =>
+  Aa2Sdk.initAASdk().then(() =>
+    waitTillCondition(filters.initMsg)
+  )
 
 export const getInfo = async () => {
   const getInfoCmd = {
@@ -70,6 +71,7 @@ interface Message {
 type Filter = (messages: Message) => boolean;
 
 export const filters = {
+  initMsg: (message: Message) => message.msg === 'INIT',
   infoMsg: (message: Message) => message.msg === 'INFO',
   authMsg: (message: Message) => message.msg === 'AUTH',
   accessRightsMsg: (message: Message) => message.msg === 'ACCESS_RIGHTS',
