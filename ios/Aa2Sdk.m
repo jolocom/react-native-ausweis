@@ -1,16 +1,38 @@
 // Aa2Sdk.m
 
-#import "Aa2Sdk.h"
+// import RCTBridgeModule
+#if __has_include(<React/RCTBridgeModule.h>)
+#import <React/RCTBridgeModule.h>
+#elif __has_include(“RCTBridgeModule.h”)
+#import “RCTBridgeModule.h”
+#else
+#import “React/RCTBridgeModule.h” // Required when used as a Pod in a Swift project
+#endif
 
+// import RCTEventEmitter
+#if __has_include(<React/RCTEventEmitter.h>)
+#import <React/RCTEventEmitter.h>
+#elif __has_include(“RCTEventEmitter.h”)
+#import “RCTEventEmitter.h”
+#else
+#import “React/RCTEventEmitter.h” // Required when used as a Pod in a Swift project
+#endif
 
-@implementation Aa2Sdk
+@interface RCT_EXTERN_MODULE(Aa2Sdk, NSObject)
+RCT_EXTERN_METHOD(sendCMD: (NSString *) cmd
+                  resolve: (RCTPromiseResolveBlock)resolve
+                  rejecter :(RCTPromiseRejectBlock)reject
+                  )
 
-RCT_EXPORT_MODULE()
+RCT_EXTERN_METHOD(initAASdk:
+                  (RCTPromiseResolveBlock)resolve
+                  rejecter :(RCTPromiseRejectBlock)reject
+                  )
 
-RCT_EXPORT_METHOD(sampleMethod:(NSString *)stringArgument numberParameter:(nonnull NSNumber *)numberArgument callback:(RCTResponseSenderBlock)callback)
-{
-    // TODO: Implement some actually useful functionality
-    callback(@[[NSString stringWithFormat: @"numberArgument: %@ stringArgument: %@", numberArgument, stringArgument]]);
-}
+RCT_EXTERN_METHOD(getNewEvents:
+                  (RCTPromiseResolveBlock)resolve
+                  rejecter :(RCTPromiseRejectBlock)reject
+                  )
 
+RCT_EXTERN_METHOD(disconnectSdk)
 @end
