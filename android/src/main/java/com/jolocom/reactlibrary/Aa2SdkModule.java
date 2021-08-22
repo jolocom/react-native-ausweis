@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
-import android.os.RemoteException;
 
 import androidx.annotation.NonNull;
 
@@ -14,6 +13,9 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+
+import com.jolocom.reactlibrary.exception.SdkInitializationException;
+import com.jolocom.reactlibrary.exception.SdkNotInitializedException;
 
 public class Aa2SdkModule extends ReactContextBaseJavaModule implements ActivityEventListener {
     private static final String NAME = "Aa2Sdk";
@@ -37,17 +39,12 @@ public class Aa2SdkModule extends ReactContextBaseJavaModule implements Activity
 
     @Override
     public void onNewIntent(Intent intent) {
+        this.assertServiceConnectionInitialized("New intent processing failed");
+
         final Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
 
         if (tag != null) {
-            try {
-                this.aa2ServiceConnection.updateSdkNfcTag(tag);
-            } catch (RemoteException e) {
-                // ...
-            } catch (Exception e) {
-                // TODO: Intercept all other exceptions
-                //  (e.g. aa2ServiceConnection can be not initialized) and process
-            }
+            this.aa2ServiceConnection.updateSdkNfcTag(tag);
         }
     }
 
@@ -62,34 +59,61 @@ public class Aa2SdkModule extends ReactContextBaseJavaModule implements Activity
         final Intent startSdkServiceIntent = new Intent(INITIAL_NAME).setPackage(packageName);
 
         this.aa2ServiceConnection = new Aa2ServiceConnection();
-        this.reactContext.bindService(
-            startSdkServiceIntent,
-            this.aa2ServiceConnection,
-            Context.BIND_AUTO_CREATE
-        );
 
+        try {
+            this.reactContext.bindService(
+                startSdkServiceIntent,
+                this.aa2ServiceConnection,
+                Context.BIND_AUTO_CREATE
+            );
+        } catch (SecurityException e) {
+            throw new SdkInitializationException("Service connection failed.", e);
+        }
+
+        // TODO: Define if we can hande exceptions in one point
+        //  (for example ReactApplicationContext::setNativeModuleCallExceptionHandler())
+        //  and if so - just if it not throws - means that all is ok and continue on js level
+        //  might be reason to remove promise usage
         promise.resolve("Ok");
     }
 
     @ReactMethod
     public void sendCMD(String command, Promise promise) {
-        try {
-            promise.resolve(this.aa2ServiceConnection.sendCommand(command));
-        } catch (RemoteException e) {
-            // TODO Error handling?
-            promise.reject(e);
-        }
+        // TODO: Define if we can hande exceptions in one point
+        //  (for example ReactApplicationContext::setNativeModuleCallExceptionHandler())
+        //  and if so - just if it not throws - means that all is ok and continue on js level
+        //  might be reason to remove promise usage
+        this.assertServiceConnectionInitialized("Command sending failed");
+
+        this.aa2ServiceConnection.sendCommand(command);
     }
 
     @ReactMethod
     public void getNewEvents(Promise promise) {
+        this.assertServiceConnectionInitialized("New events reading failed");
+
         promise.resolve(this.aa2ServiceConnection.getSessionMessagesBuffer().getBuffer());
         this.aa2ServiceConnection.getSessionMessagesBuffer().resetBuffer();
     }
 
     @ReactMethod
     public void disconnectSdk(Promise promise) {
+        this.assertServiceConnectionInitialized("Sdk disconnection failed");
+
         this.reactContext.unbindService(this.aa2ServiceConnection);
+
+        // TODO: Define if we can hande exceptions in one point
+        //  (for example ReactApplicationContext::setNativeModuleCallExceptionHandler())
+        //  and if so - just if it not throws - means that all is ok and continue on js level
+        //  might be reason to remove promise usage
         promise.resolve("Ok");
+    }
+
+    private void assertServiceConnectionInitialized(String message) {
+        if (this.aa2ServiceConnection == null) {
+            throw new SdkNotInitializedException(
+                String.format("%s. Service connection not initialized.", message
+            ));
+        }
     }
 }
