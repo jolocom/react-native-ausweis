@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -69,9 +70,15 @@ public class Aa2SdkModule extends ReactContextBaseJavaModule implements Activity
                 Context.BIND_AUTO_CREATE
             );
         } catch (SecurityException e) {
+            Log.e(
+                this.getClass().getSimpleName(),
+                SdkInitializationException.DEFAULT_ERROR_MESSAGE,
+                e
+            );
+
             promise.reject(
                 SdkInitializationException.class.getSimpleName(),
-                "Service connection failed."
+                SdkInitializationException.DEFAULT_ERROR_MESSAGE
             );
         }
 
@@ -119,9 +126,11 @@ public class Aa2SdkModule extends ReactContextBaseJavaModule implements Activity
 
     private void assertServiceConnectionInitialized(String message) {
         if (this.aa2ServiceConnection == null) {
-            throw new SdkNotInitializedException(
-                String.format("%s. Service connection not initialized.", message
-            ));
+            String errorMessage = String.format("%s. Service connection not initialized.", message);
+
+            Log.e(this.getClass().getSimpleName(), errorMessage);
+
+            throw new SdkNotInitializedException(errorMessage);
         }
     }
 }

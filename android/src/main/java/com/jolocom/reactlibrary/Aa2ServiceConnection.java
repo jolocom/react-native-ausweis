@@ -5,6 +5,7 @@ import android.content.ServiceConnection;
 import android.nfc.Tag;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.util.Log;
 
 import com.governikus.ausweisapp2.IAusweisApp2Sdk;
 
@@ -27,10 +28,21 @@ public class Aa2ServiceConnection implements ServiceConnection {
 
         try {
             if (!sdk.connectSdk(sdkSession)) {
-                throw new SdkInitializationException("Service connection failed.");
+                Log.e(
+                    this.getClass().getSimpleName(),
+                    SdkInitializationException.DEFAULT_ERROR_MESSAGE
+                );
+
+                throw new SdkInitializationException();
             }
         } catch (RemoteException e) {
-            throw new SdkInitializationException("Service connection failed.", e);
+            Log.e(
+                this.getClass().getSimpleName(),
+                SdkInitializationException.DEFAULT_ERROR_MESSAGE,
+                e
+            );
+
+            throw new SdkInitializationException(e);
         }
 
         this.sdk = sdk;
@@ -57,17 +69,25 @@ public class Aa2ServiceConnection implements ServiceConnection {
                 command
             );
         } catch (RemoteException e) {
-            throw new SdkInternalException(String.format(
+            String errorMessage = String.format(
                 "Command processing failed. Command: %s",
                 command
-            ), e);
+            );
+
+            Log.e(this.getClass().getSimpleName(), errorMessage, e);
+
+            throw new SdkInternalException(errorMessage, e);
         }
 
         if (!isSendSuccessfully) {
-            throw new SendCommandException(String.format(
+            String errorMessage = String.format(
                 "Command processing failed. IAusweisApp2Sdk::send() returns 'false'. Command: '%s'.",
                 command
-            ));
+            );
+
+            Log.e(this.getClass().getSimpleName(), errorMessage);
+
+            throw new SendCommandException(errorMessage);
         }
     }
 
@@ -80,10 +100,11 @@ public class Aa2ServiceConnection implements ServiceConnection {
         try {
             this.sdk.updateNfcTag(this.sdkSession.getSessionMessagesBuffer().getSessionId(), tag);
         } catch (RemoteException e) {
-            throw new SdkInternalException(String.format(
-                "Sdk tag update failed. Tag: '%s'.",
-                tag.toString()
-            ), e);
+            String errorMessage = String.format("Sdk tag update failed. Tag: '%s'.", tag.toString());
+
+            Log.e(this.getClass().getSimpleName(), errorMessage);
+
+            throw new SdkInternalException(errorMessage, e);
         }
     }
 
@@ -95,6 +116,8 @@ public class Aa2ServiceConnection implements ServiceConnection {
 
     private void assertSdkInitialized(String message) {
         if (this.sdk == null || this.sdkSession == null) {
+            Log.e(this.getClass().getSimpleName(), message);
+
             throw new SdkNotInitializedException(message);
         }
     }
