@@ -15,7 +15,9 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 
 import com.jolocom.reactlibrary.exception.SdkInitializationException;
+import com.jolocom.reactlibrary.exception.SdkInternalException;
 import com.jolocom.reactlibrary.exception.SdkNotInitializedException;
+import com.jolocom.reactlibrary.exception.SendCommandException;
 
 public class Aa2SdkModule extends ReactContextBaseJavaModule implements ActivityEventListener {
     private static final String NAME = "Aa2Sdk";
@@ -54,7 +56,7 @@ public class Aa2SdkModule extends ReactContextBaseJavaModule implements Activity
     }
 
     @ReactMethod
-    public void initAASdk (final Promise promise) {
+    public void initAASdk(final Promise promise) {
         final String packageName = this.reactContext.getApplicationContext().getPackageName();
         final Intent startSdkServiceIntent = new Intent(INITIAL_NAME).setPackage(packageName);
 
@@ -67,45 +69,51 @@ public class Aa2SdkModule extends ReactContextBaseJavaModule implements Activity
                 Context.BIND_AUTO_CREATE
             );
         } catch (SecurityException e) {
-            throw new SdkInitializationException("Service connection failed.", e);
+            promise.reject(
+                SdkInitializationException.class.getSimpleName(),
+                "Service connection failed."
+            );
         }
 
-        // TODO: Define if we can hande exceptions in one point
-        //  (for example ReactApplicationContext::setNativeModuleCallExceptionHandler())
-        //  and if so - just if it not throws - means that all is ok and continue on js level
-        //  might be reason to remove promise usage
         promise.resolve("Ok");
     }
 
     @ReactMethod
     public void sendCMD(String command, Promise promise) {
-        // TODO: Define if we can hande exceptions in one point
-        //  (for example ReactApplicationContext::setNativeModuleCallExceptionHandler())
-        //  and if so - just if it not throws - means that all is ok and continue on js level
-        //  might be reason to remove promise usage
-        this.assertServiceConnectionInitialized("Command sending failed");
+        try {
+            this.assertServiceConnectionInitialized("Command sending failed");
 
-        this.aa2ServiceConnection.sendCommand(command);
+            this.aa2ServiceConnection.sendCommand(command);
+        } catch (SdkNotInitializedException | SdkInternalException | SendCommandException e) {
+            promise.reject(e.getClass().getSimpleName(), e.getMessage());
+        }
+
+        promise.resolve("Ok");
     }
 
     @ReactMethod
     public void getNewEvents(Promise promise) {
-        this.assertServiceConnectionInitialized("New events reading failed");
+        try {
+            this.assertServiceConnectionInitialized("New events reading failed");
 
-        promise.resolve(this.aa2ServiceConnection.getSessionMessagesBuffer().getBuffer());
-        this.aa2ServiceConnection.getSessionMessagesBuffer().resetBuffer();
+            promise.resolve(this.aa2ServiceConnection.getSessionMessagesBuffer().getBuffer());
+
+            this.aa2ServiceConnection.getSessionMessagesBuffer().resetBuffer();
+        } catch (SdkNotInitializedException e) {
+            promise.reject(e.getClass().getSimpleName(), e.getMessage());
+        }
     }
 
     @ReactMethod
     public void disconnectSdk(Promise promise) {
-        this.assertServiceConnectionInitialized("Sdk disconnection failed");
+        try {
+            this.assertServiceConnectionInitialized("Sdk disconnection failed");
+        } catch (SdkNotInitializedException e) {
+            promise.reject(e.getClass().getSimpleName(), e.getMessage());
+        }
 
         this.reactContext.unbindService(this.aa2ServiceConnection);
 
-        // TODO: Define if we can hande exceptions in one point
-        //  (for example ReactApplicationContext::setNativeModuleCallExceptionHandler())
-        //  and if so - just if it not throws - means that all is ok and continue on js level
-        //  might be reason to remove promise usage
         promise.resolve("Ok");
     }
 
