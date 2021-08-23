@@ -42,6 +42,8 @@ public class Aa2SdkModule extends ReactContextBaseJavaModule implements Activity
 
     @Override
     public void onNewIntent(Intent intent) {
+        Log.i(this.getClass().getSimpleName(), "New intent request.");
+
         this.assertServiceConnectionInitialized("New intent processing failed");
 
         final Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
@@ -82,11 +84,18 @@ public class Aa2SdkModule extends ReactContextBaseJavaModule implements Activity
             );
         }
 
+        Log.i(this.getClass().getSimpleName(), "SDK initialized successfully.");
+
         promise.resolve("Ok");
     }
 
     @ReactMethod
     public void sendCMD(String command, Promise promise) {
+        Log.i(
+            this.getClass().getSimpleName(),
+            String.format("Command execution request. Command: '%s'", command)
+        );
+
         try {
             this.assertServiceConnectionInitialized("Command sending failed");
 
@@ -94,6 +103,8 @@ public class Aa2SdkModule extends ReactContextBaseJavaModule implements Activity
         } catch (SdkNotInitializedException | SdkInternalException | SendCommandException e) {
             promise.reject(e.getClass().getSimpleName(), e.getMessage());
         }
+
+        Log.i(this.getClass().getSimpleName(), "Command execution request sent successfully.");
 
         promise.resolve("Ok");
     }
@@ -120,6 +131,8 @@ public class Aa2SdkModule extends ReactContextBaseJavaModule implements Activity
         }
 
         this.reactContext.unbindService(this.aa2ServiceConnection);
+
+        Log.i(this.getClass().getSimpleName(), "SDK disconnected successfully.");
 
         promise.resolve("Ok");
     }
