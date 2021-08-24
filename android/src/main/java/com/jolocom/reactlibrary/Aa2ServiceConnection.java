@@ -16,6 +16,7 @@ import com.jolocom.reactlibrary.exception.SendCommandException;
 
 // Will connect to the AA2 background service. Stores the random session identifier
 public class Aa2ServiceConnection implements ServiceConnection {
+    private static final String TAG = Aa2ServiceConnection.class.getSimpleName();
     // What we care about here is getting the SDK instance, as well as the mSessionId
     // Once we connect to the background service, we attempt to establish a session with the SDK, then set the instantiated SDK
     private IAusweisApp2Sdk sdk;
@@ -28,19 +29,12 @@ public class Aa2ServiceConnection implements ServiceConnection {
 
         try {
             if (!sdk.connectSdk(sdkSession)) {
-                Log.e(
-                    this.getClass().getSimpleName(),
-                    SdkInitializationException.DEFAULT_ERROR_MESSAGE
-                );
+                Log.e(TAG, SdkInitializationException.DEFAULT_ERROR_MESSAGE);
 
                 throw new SdkInitializationException();
             }
         } catch (RemoteException e) {
-            Log.e(
-                this.getClass().getSimpleName(),
-                SdkInitializationException.DEFAULT_ERROR_MESSAGE,
-                e
-            );
+            Log.e(TAG, SdkInitializationException.DEFAULT_ERROR_MESSAGE, e);
 
             throw new SdkInitializationException(e);
         }
@@ -74,7 +68,7 @@ public class Aa2ServiceConnection implements ServiceConnection {
                 command
             );
 
-            Log.e(this.getClass().getSimpleName(), errorMessage, e);
+            Log.e(TAG, errorMessage, e);
 
             throw new SdkInternalException(errorMessage, e);
         }
@@ -85,7 +79,7 @@ public class Aa2ServiceConnection implements ServiceConnection {
                 command
             );
 
-            Log.e(this.getClass().getSimpleName(), errorMessage);
+            Log.e(TAG, errorMessage);
 
             throw new SendCommandException(errorMessage);
         }
@@ -102,7 +96,7 @@ public class Aa2ServiceConnection implements ServiceConnection {
         } catch (RemoteException e) {
             String errorMessage = String.format("Sdk tag update failed. Tag: '%s'.", tag.toString());
 
-            Log.e(this.getClass().getSimpleName(), errorMessage);
+            Log.e(TAG, errorMessage);
 
             throw new SdkInternalException(errorMessage, e);
         }
@@ -116,7 +110,7 @@ public class Aa2ServiceConnection implements ServiceConnection {
 
     private void assertSdkInitialized(String message) {
         if (this.sdk == null || this.sdkSession == null) {
-            Log.e(this.getClass().getSimpleName(), message);
+            Log.e(TAG, message);
 
             throw new SdkNotInitializedException(message);
         }
