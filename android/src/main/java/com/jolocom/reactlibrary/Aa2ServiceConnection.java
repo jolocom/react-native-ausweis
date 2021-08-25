@@ -7,6 +7,7 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
 
+import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter;
 import com.governikus.ausweisapp2.IAusweisApp2Sdk;
 
 import com.jolocom.reactlibrary.exception.SdkInitializationException;
@@ -17,15 +18,20 @@ import com.jolocom.reactlibrary.exception.SendCommandException;
 // Will connect to the AA2 background service. Stores the random session identifier
 public class Aa2ServiceConnection implements ServiceConnection {
     private static final String TAG = Aa2ServiceConnection.class.getSimpleName();
+    private final RCTDeviceEventEmitter eventEmitterModule;
     // What we care about here is getting the SDK instance, as well as the mSessionId
     // Once we connect to the background service, we attempt to establish a session with the SDK, then set the instantiated SDK
     private IAusweisApp2Sdk sdk;
     private Aa2SdkSession sdkSession;
 
+    public Aa2ServiceConnection(RCTDeviceEventEmitter eventEmitterModule) {
+        this.eventEmitterModule = eventEmitterModule;
+    }
+
     @Override
     public void onServiceConnected(ComponentName className, IBinder service) {
         IAusweisApp2Sdk sdk = IAusweisApp2Sdk.Stub.asInterface(service);
-        Aa2SdkSession sdkSession = new Aa2SdkSession();
+        Aa2SdkSession sdkSession = new Aa2SdkSession(this.eventEmitterModule);
 
         try {
             if (!sdk.connectSdk(sdkSession)) {

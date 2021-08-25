@@ -15,6 +15,7 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 
+import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter;
 import com.jolocom.reactlibrary.exception.SdkInitializationException;
 import com.jolocom.reactlibrary.exception.SdkInternalException;
 import com.jolocom.reactlibrary.exception.SdkNotInitializedException;
@@ -64,7 +65,9 @@ public class Aa2SdkModule extends ReactContextBaseJavaModule implements Activity
         final String packageName = this.reactContext.getApplicationContext().getPackageName();
         final Intent startSdkServiceIntent = new Intent(INITIAL_NAME).setPackage(packageName);
 
-        this.aa2ServiceConnection = new Aa2ServiceConnection();
+        this.aa2ServiceConnection = new Aa2ServiceConnection(
+            this.reactContext.getJSModule(RCTDeviceEventEmitter.class)
+        );
 
         try {
             this.reactContext.bindService(
