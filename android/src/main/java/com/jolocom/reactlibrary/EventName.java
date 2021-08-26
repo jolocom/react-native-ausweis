@@ -6,7 +6,8 @@ public enum EventName {
     ON_SDK_INIT("onSdkInit"),
     ON_SDK_DISCONNECT("onSdkDisconnect"),
     ON_SESSION_ID_RECEIVE("onSessionIdReceive"),
-    ON_COMMAND_SENT_SUCCESSFULLY("onCommandSentSuccessfully");
+    ON_COMMAND_SENT_SUCCESSFULLY("onCommandSentSuccessfully"),
+    ON_NEW_INTENT_SUCCESS("onNewIntentSuccess");
 
     public final String value;
 

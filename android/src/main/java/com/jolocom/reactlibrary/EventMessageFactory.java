@@ -21,6 +21,7 @@ public class EventMessageFactory {
         this.nameToMessageTypeMap.put(EventName.ON_SDK_DISCONNECT, EventMessageType.MESSAGE);
         this.nameToMessageTypeMap.put(EventName.ON_SESSION_ID_RECEIVE, EventMessageType.MESSAGE);
         this.nameToMessageTypeMap.put(EventName.ON_COMMAND_SENT_SUCCESSFULLY, EventMessageType.MESSAGE);
+        this.nameToMessageTypeMap.put(EventName.ON_NEW_INTENT_SUCCESS, EventMessageType.MESSAGE);
     }
 
     public EventMessage create(EventName eventName, Object payload) {
