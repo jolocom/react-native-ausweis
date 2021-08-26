@@ -53,13 +53,21 @@ public class Aa2SdkModule extends ReactContextBaseJavaModule implements Activity
     public void onNewIntent(Intent intent) {
         Log.i(TAG, "New intent request.");
 
-        this.assertServiceConnectionInitialized("New intent processing failed");
+        try {
+            this.assertServiceConnectionInitialized("New intent processing failed");
 
-        final Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+            final Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
 
-        if (tag != null) {
-            this.aa2ServiceConnection.updateSdkNfcTag(tag);
+            if (tag != null) {
+                this.aa2ServiceConnection.updateSdkNfcTag(tag);
+            }
+        } catch (SdkNotInitializedException | SdkInternalException e) {
+            this.eventEmitter.emit(EventName.ON_ERROR, e.getClass().getSimpleName());
         }
+
+        Log.i(TAG, "New intent request processed successfully.");
+
+        this.eventEmitter.emit(EventName.ON_NEW_INTENT_SUCCESS);
     }
 
     @Override
