@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -22,6 +23,7 @@ import com.jolocom.reactlibrary.exception.SendCommandException;
 public class Aa2SdkModule extends ReactContextBaseJavaModule implements ActivityEventListener {
     private static final String NAME = "Aa2Sdk";
     private static final String INITIAL_NAME = "com.governikus.ausweisapp2.START_SERVICE";
+    private static final String TAG = Aa2SdkModule.class.getSimpleName();
 
     private final ReactApplicationContext reactContext;
     private Aa2ServiceConnection aa2ServiceConnection;
@@ -41,6 +43,8 @@ public class Aa2SdkModule extends ReactContextBaseJavaModule implements Activity
 
     @Override
     public void onNewIntent(Intent intent) {
+        Log.i(TAG, "New intent request.");
+
         this.assertServiceConnectionInitialized("New intent processing failed");
 
         final Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
@@ -69,17 +73,23 @@ public class Aa2SdkModule extends ReactContextBaseJavaModule implements Activity
                 Context.BIND_AUTO_CREATE
             );
         } catch (SecurityException e) {
+            Log.e(TAG, SdkInitializationException.DEFAULT_ERROR_MESSAGE, e);
+
             promise.reject(
                 SdkInitializationException.class.getSimpleName(),
-                "Service connection failed."
+                SdkInitializationException.DEFAULT_ERROR_MESSAGE
             );
         }
+
+        Log.i(TAG, "SDK initialized successfully.");
 
         promise.resolve("Ok");
     }
 
     @ReactMethod
     public void sendCMD(String command, Promise promise) {
+        Log.i(TAG, String.format("Command execution request. Command: '%s'", command));
+
         try {
             this.assertServiceConnectionInitialized("Command sending failed");
 
@@ -87,6 +97,8 @@ public class Aa2SdkModule extends ReactContextBaseJavaModule implements Activity
         } catch (SdkNotInitializedException | SdkInternalException | SendCommandException e) {
             promise.reject(e.getClass().getSimpleName(), e.getMessage());
         }
+
+        Log.i(TAG, "Command execution request sent successfully.");
 
         promise.resolve("Ok");
     }
@@ -114,14 +126,18 @@ public class Aa2SdkModule extends ReactContextBaseJavaModule implements Activity
 
         this.reactContext.unbindService(this.aa2ServiceConnection);
 
+        Log.i(TAG, "SDK disconnected successfully.");
+
         promise.resolve("Ok");
     }
 
     private void assertServiceConnectionInitialized(String message) {
         if (this.aa2ServiceConnection == null) {
-            throw new SdkNotInitializedException(
-                String.format("%s. Service connection not initialized.", message
-            ));
+            String errorMessage = String.format("%s. Service connection not initialized.", message);
+
+            Log.e(TAG, errorMessage);
+
+            throw new SdkNotInitializedException(errorMessage);
         }
     }
 }
