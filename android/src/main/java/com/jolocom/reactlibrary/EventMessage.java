@@ -16,7 +16,7 @@ public class EventMessage {
     }
 
     public String getEventName() {
-        return this.eventNameEnum.name;
+        return this.eventNameEnum.value;
     }
 
     public EventMessageType getTypeEnum() {

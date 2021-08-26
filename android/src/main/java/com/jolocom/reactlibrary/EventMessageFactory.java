@@ -51,7 +51,7 @@ public class EventMessageFactory {
 
         try {
             jsonObject.put(
-                Objects.requireNonNull(this.nameToMessageTypeMap.get(eventName)).toString(),
+                Objects.requireNonNull(this.nameToMessageTypeMap.get(eventName)).value,
                 payload
             );
         } catch (JSONException | NullPointerException e) {

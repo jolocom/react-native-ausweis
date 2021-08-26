@@ -8,9 +8,9 @@ public enum EventName {
     ON_SESSION_ID_RECEIVE("onSessionIdReceive"),
     ON_COMMAND_SENT_SUCCESSFULLY("onCommandSentSuccessfully");
 
-    public final String name;
+    public final String value;
 
-    EventName(String name) {
-        this.name = name;
+    EventName(String value) {
+        this.value = value;
     }
 }
