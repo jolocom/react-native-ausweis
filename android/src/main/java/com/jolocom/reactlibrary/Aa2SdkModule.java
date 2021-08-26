@@ -10,7 +10,6 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.facebook.react.bridge.ActivityEventListener;
-import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
@@ -28,12 +27,20 @@ public class Aa2SdkModule extends ReactContextBaseJavaModule implements Activity
 
     private final ReactApplicationContext reactContext;
     private Aa2ServiceConnection aa2ServiceConnection;
+    private EventEmitter eventEmitter;
 
     public Aa2SdkModule(ReactApplicationContext reactContext) {
         super(reactContext);
 
         this.reactContext = reactContext;
         reactContext.addActivityEventListener(this);
+    }
+
+    @Override
+    public void initialize() {
+        super.initialize();
+
+        this.eventEmitter = new EventEmitter(reactContext.getJSModule(RCTDeviceEventEmitter.class));
     }
 
     @NonNull
@@ -61,13 +68,11 @@ public class Aa2SdkModule extends ReactContextBaseJavaModule implements Activity
     }
 
     @ReactMethod
-    public void initAASdk(final Promise promise) {
+    public void initAASdk() {
         final String packageName = this.reactContext.getApplicationContext().getPackageName();
         final Intent startSdkServiceIntent = new Intent(INITIAL_NAME).setPackage(packageName);
 
-        this.aa2ServiceConnection = new Aa2ServiceConnection(
-            this.reactContext.getJSModule(RCTDeviceEventEmitter.class)
-        );
+        this.aa2ServiceConnection = new Aa2ServiceConnection(this.eventEmitter);
 
         try {
             this.reactContext.bindService(
@@ -78,19 +83,19 @@ public class Aa2SdkModule extends ReactContextBaseJavaModule implements Activity
         } catch (SecurityException e) {
             Log.e(TAG, SdkInitializationException.DEFAULT_ERROR_MESSAGE, e);
 
-            promise.reject(
-                SdkInitializationException.class.getSimpleName(),
-                SdkInitializationException.DEFAULT_ERROR_MESSAGE
+            this.eventEmitter.emit(
+                EventName.ON_ERROR,
+                SdkInitializationException.class.getSimpleName()
             );
         }
 
         Log.i(TAG, "SDK initialized successfully.");
 
-        promise.resolve("Ok");
+        this.eventEmitter.emit(EventName.ON_SDK_INIT);
     }
 
     @ReactMethod
-    public void sendCMD(String command, Promise promise) {
+    public void sendCMD(String command) {
         Log.i(TAG, String.format("Command execution request. Command: '%s'", command));
 
         try {
@@ -98,40 +103,27 @@ public class Aa2SdkModule extends ReactContextBaseJavaModule implements Activity
 
             this.aa2ServiceConnection.sendCommand(command);
         } catch (SdkNotInitializedException | SdkInternalException | SendCommandException e) {
-            promise.reject(e.getClass().getSimpleName(), e.getMessage());
+            this.eventEmitter.emit(EventName.ON_ERROR, e.getClass().getSimpleName());
         }
 
         Log.i(TAG, "Command execution request sent successfully.");
 
-        promise.resolve("Ok");
+        this.eventEmitter.emit(EventName.ON_COMMAND_SENT_SUCCESSFULLY);
     }
 
     @ReactMethod
-    public void getNewEvents(Promise promise) {
-        try {
-            this.assertServiceConnectionInitialized("New events reading failed");
-
-            promise.resolve(this.aa2ServiceConnection.getSessionMessagesBuffer().getBuffer());
-
-            this.aa2ServiceConnection.getSessionMessagesBuffer().resetBuffer();
-        } catch (SdkNotInitializedException e) {
-            promise.reject(e.getClass().getSimpleName(), e.getMessage());
-        }
-    }
-
-    @ReactMethod
-    public void disconnectSdk(Promise promise) {
+    public void disconnectSdk() {
         try {
             this.assertServiceConnectionInitialized("Sdk disconnection failed");
         } catch (SdkNotInitializedException e) {
-            promise.reject(e.getClass().getSimpleName(), e.getMessage());
+            this.eventEmitter.emit(EventName.ON_ERROR, e.getClass().getSimpleName());
         }
 
         this.reactContext.unbindService(this.aa2ServiceConnection);
 
         Log.i(TAG, "SDK disconnected successfully.");
 
-        promise.resolve("Ok");
+        this.eventEmitter.emit(EventName.ON_SDK_DISCONNECT);
     }
 
     private void assertServiceConnectionInitialized(String message) {

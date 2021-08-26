@@ -1,30 +1,25 @@
 package com.jolocom.reactlibrary;
 
-import com.facebook.react.bridge.WritableNativeArray;
-import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter;
 import com.governikus.ausweisapp2.IAusweisApp2SdkCallback;
 
 public class Aa2SdkSession extends IAusweisApp2SdkCallback.Stub {
-    private final SessionMessagesBuffer sessionMessagesBuffer = new SessionMessagesBuffer();
-    private final RCTDeviceEventEmitter eventEmitterModule;
+    private final EventEmitter eventEmitter;
+    private String sessionId;
 
-    public Aa2SdkSession(RCTDeviceEventEmitter eventEmitterModule) {
-        this.eventEmitterModule = eventEmitterModule;
+    public Aa2SdkSession(EventEmitter eventEmitter) {
+        this.eventEmitter = eventEmitter;
     }
 
     @Override
     public void sessionIdGenerated(String sessionId, boolean isSecureSessionId) {
-        this.sessionMessagesBuffer.setSessionId(sessionId);
-        this.receive("{\"msg\": \"INIT\"}");
+        this.sessionId = sessionId;
+
+        this.eventEmitter.emit(EventName.ON_SESSION_ID_RECEIVE, sessionId);
     }
 
     @Override
     public void receive(String json) {
-        WritableNativeArray payload = new WritableNativeArray();
-        payload.pushString(json);
-
-        // TODO: Define the events name since it will be the same on the listening js side
-        this.eventEmitterModule.emit("sdkMessage", payload);
+        this.eventEmitter.emit(EventName.ON_MESSAGE, json);
     }
 
     // TODO Add
@@ -32,7 +27,7 @@ public class Aa2SdkSession extends IAusweisApp2SdkCallback.Stub {
     public void sdkDisconnected() {
     }
 
-    public SessionMessagesBuffer getSessionMessagesBuffer() {
-        return this.sessionMessagesBuffer;
+    public String getSessionId() {
+        return sessionId;
     }
 }
