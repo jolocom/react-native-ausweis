@@ -3,17 +3,23 @@ package com.jolocom.reactlibrary;
 import com.governikus.ausweisapp2.IAusweisApp2SdkCallback;
 
 public class Aa2SdkSession extends IAusweisApp2SdkCallback.Stub {
-    private final SessionMessagesBuffer sessionMessagesBuffer = new SessionMessagesBuffer();
+    private final EventEmitter eventEmitter;
+    private String sessionId;
+
+    public Aa2SdkSession(EventEmitter eventEmitter) {
+        this.eventEmitter = eventEmitter;
+    }
 
     @Override
     public void sessionIdGenerated(String sessionId, boolean isSecureSessionId) {
-        this.sessionMessagesBuffer.setSessionId(sessionId);
-        this.receive("{\"msg\": \"INIT\"}");
+        this.sessionId = sessionId;
+
+        this.eventEmitter.emit(EventName.ON_SESSION_ID_RECEIVE, sessionId);
     }
 
     @Override
     public void receive(String json) {
-        this.sessionMessagesBuffer.pushMessage(json);
+        this.eventEmitter.emit(EventName.ON_MESSAGE, json);
     }
 
     // TODO Add
@@ -21,7 +27,7 @@ public class Aa2SdkSession extends IAusweisApp2SdkCallback.Stub {
     public void sdkDisconnected() {
     }
 
-    public SessionMessagesBuffer getSessionMessagesBuffer() {
-        return this.sessionMessagesBuffer;
+    public String getSessionId() {
+        return sessionId;
     }
 }
