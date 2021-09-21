@@ -1,9 +1,15 @@
 // main index.js
 
-//@ts-ignore
-import { NativeModules } from 'react-native';
+import {NativeModules, NativeEventEmitter} from 'react-native';
 
-const { Aa2Sdk } = NativeModules;
+const { Aa2Sdk, Emitter } = NativeModules;
+
+const eventEmitter = new NativeEventEmitter(Emitter);
+
+eventEmitter.addListener("onMessage", (body) => {
+  alert(333)
+  console.log({body})
+})
 
 export const initAa2Sdk = async () =>
   Aa2Sdk.initAASdk().then(() =>
