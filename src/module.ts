@@ -1,82 +1,179 @@
-import { acceptAuthReqCmd, enterPinCmd, getInfoCmd, runAuthCmd } from './commands';
+import { acceptAuthReqCmd, enterPinCmd, getInfoCmd, runAuthCmd, Request, initSdkCmd } from './commands';
 import { filters } from './responseFilters';
-import { Filter, Message } from './types';
+import { Filter, Message, Events } from './types';
 
 const delay = async (delay: number) => {
   return new Promise(resolve => setTimeout(resolve, delay));
 };
 
+
+type CB = (error: Message | null, message: Message | null) => void
+
+type RequestSummary = {
+  request: Request,
+  requestSent: boolean
+  callback: CB
+}
+
+const createRequestSummary = (request: Request, callback: CB): RequestSummary => {
+  return {
+    request,
+    callback,
+    requestSent: false
+  }
+}
+
+interface Emitter {
+  on: (event: Events, callback: Function) => void
+}
+
+interface AA2Implementation {
+  sendCMD: (cmd: string) => void,
+  initAASdk: () => void,
+}
+
 export class Aa2Module {
   private nativeAa2Module: any
+  private unprocessedMessages: Object[] = []
+  private currentOperation: RequestSummary | undefined
+  private queuedOperations: RequestSummary[] = []
+  public isInitialized = false
 
-  constructor(aa2Implementation: any) {
+  constructor(aa2Implementation: any, eventEmitter: Emitter) {
     this.nativeAa2Module = aa2Implementation
-  }
 
-  private async sendCmd(command: Object): Promise<void> {
-    const res = await this.nativeAa2Module.sendCMD(JSON.stringify(command));
-    if (!res) {
-      throw new Error('TODO: Sending failed');
-    }
-    return;
-  }
+    eventEmitter.on(Events.message, (response: string) => {
+      const parsed = JSON.parse(response)
+      this.onMessage(JSON.parse(parsed.message))
+    })
 
-  private async waitTillCondition(filter: Filter, pollInterval = 1500) {
-    await delay(pollInterval);
-    return this.getNewEvents()
-      .then(messages => (messages || []).filter(filter)[0])
-      .then(message => {
-        return message || this.waitTillCondition(filter);
-      });
-  };
+    eventEmitter.on(Events.sdkInitialized, () => this.onMessage({'msg': 'INIT'}));
 
-  public async getNewEvents(): Promise<Message[]> {
-    return this.nativeAa2Module.getNewEvents().then(events => {
-      // Can be an array of strings, or an empty array
-      if (events.length) {
-        return events.map(JSON.parse);
+    eventEmitter.on(Events.error, (err) => {
+      // TODO Abstract to helper, e.g. rejectCurrentOperation
+      const {error} = JSON.parse(err)
+      this.currentOperation.callback(error, null)
+      this.currentOperation = undefined
+    });
+
+    eventEmitter.on(Events.commandSentSuccessfully, () => {
+      // TODO
+      if (this.currentOperation) {
+        this.currentOperation.requestSent = true
       }
-      return [];
     })
   }
 
   public async initAa2Sdk() {
-    return this.nativeAa2Module.initAASdk().then(() =>
-      this.waitTillCondition(filters.initMsg)
-    )
+    return new Promise((resolve, reject) => {
+      this.nativeAa2Module.initAASdk()
+
+      this.currentOperation = createRequestSummary(
+        initSdkCmd(),
+        (error: Message, message: Message) => {
+          if (error) {
+            return reject(error)
+          }
+
+          this.isInitialized = true
+          return resolve(message)
+        }
+      )
+    })
   }
 
-  public async getInfo() {
-    return this.sendCmd(getInfoCmd()).then(() => this.waitTillCondition(filters.infoMsg));
+
+  private async sendCmd(request: Request, callback: CB): Promise<void> {
+      const operation = {
+        request,
+        callback,
+        requestSent: false
+      }
+
+      if (!this.currentOperation) {
+        this.currentOperation = operation
+        this.nativeAa2Module.sendCMD(JSON.stringify(request.command));
+
+      } else {
+        this.queuedOperations.push(operation)
+      }
+  }
+
+  // TODO Message should be added to unprocessed if both filters failed as well
+  private onMessage(message: Message) {
+    if (!this.currentOperation) {
+      this.unprocessedMessages.push(message)
+      return
+    }
+
+    const { request: { responseConditions }, callback } = this.currentOperation
+
+    if (responseConditions.success(message)) {
+      this.currentOperation = undefined
+
+      callback(null, message)
+    } else if (responseConditions.failure && responseConditions.failure(message)) {
+      this.currentOperation = undefined
+      callback(message, null)
+    }
+
+    const [queuedRequest, ...rest] = this.queuedOperations
+
+    if (queuedRequest) {
+      this.queuedOperations = rest
+      return this.sendCmd(queuedRequest.request, queuedRequest.callback)
+    }
+  }
+
+  private async waitTillCondition(filter: Filter, pollInterval = 1500) {
+    await delay(pollInterval);
+
+    const relevantResponse = this.unprocessedMessages.filter(filter)
+
+    // TODO Drop the read message from the buffer if all was processed
+    if (relevantResponse.length === 1) {
+      this.currentOperation = undefined
+      return relevantResponse[0]
+    } else {
+      return this.waitTillCondition(filter, pollInterval)
+    }
   };
-
-  public async runAuth(tcTokenUrl: string) {
-    return this.sendCmd(runAuthCmd(tcTokenUrl)).then(_ =>
-      this.waitTillCondition(filters.accessRightsMsg),
-    );
-  };
-
-  public async cancelAuth() {
-    return this.sendCmd({cmd: 'CANCEL'}) // ?
-  }
-
-  public async enterPin(pin: number) {
-    return this.sendCmd(enterPinCmd(pin)).then(() => this.waitTillCondition(filters.authMsg))
-  }
 
   public async checkIfCardWasRead() {
     return this.waitTillCondition(filters.enterPinMsg)
   }
 
-  public async acceptAuthRequest() {
-    return this.sendCmd(acceptAuthReqCmd()).then(() =>
-      this.waitTillCondition(filters.insertCardMsg),
-    );
-  };
-
-  public async getApiLevel() {
-    return this.sendCmd({cmd: 'GET_API_LEVEL'}).then(() =>
-      this.waitTillCondition(filters.apiLvlMsg),
-    );
+  public async getInfo() {
+    return new Promise((resolve, reject) => {
+      this.sendCmd(getInfoCmd(), (error, message) => error ? reject(error) : resolve(message));
+    })
   }
+
+  public async processRequest(tcTokenUrl: string) {
+    return new Promise((resolve, reject) => {
+      this.sendCmd(runAuthCmd(tcTokenUrl), (error, message) => error ? reject(error) : resolve(message))
+    })
+  }
+
+  public async cancelAuth() {
+    // return this.sendCmd({cmd: 'CANCEL'}) // ?
+  }
+
+  public async enterPin(pin: number) {
+    return new Promise((resolve, reject) => {
+      this.sendCmd(enterPinCmd(pin), (error, message) => error ? reject(error) : resolve(message))
+    })
+  }
+
+  public async acceptAuthRequest() {
+    return new Promise((resolve, reject) => {
+      this.sendCmd(acceptAuthReqCmd(), (error, message) => error ? reject(error) : resolve(message))
+    })
+  }
+
+  // public async getApiLevel() {
+  //   return new Promise((resolve, reject) => {
+  //   return this.sendCmd({cmd: 'GET_API_LEVEL'}, (error, message) => error ? reject(error) : resolve(message))
+  //   })
+  // }
 }

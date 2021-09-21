@@ -2,6 +2,7 @@ import { Message } from "./types";
 
 export const filters = {
   initMsg: (message: Message) => message.msg === 'INIT',
+  cmdSentMsg: (message: Message) => message.msg = '',
   infoMsg: (message: Message) => message.msg === 'INFO',
   authMsg: (message: Message) => message.msg === 'AUTH',
   accessRightsMsg: (message: Message) => message.msg === 'ACCESS_RIGHTS',

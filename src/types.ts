@@ -5,3 +5,11 @@ export interface Message {
 }
 
 export type Filter = (messages: Message) => boolean;
+
+export enum Events {
+  error = 'onError',
+  message = 'onMessage',
+  sdkInitialized = 'onSdkInit',
+  sdkDisconnected = 'onSdkDisconnect',
+  commandSentSuccessfully = 'onCommandSentSuccessfully',
+}

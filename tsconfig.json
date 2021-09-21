@@ -20,5 +20,6 @@
     "exclude": [
         "./js",
         "./tests/**/*",
+        "./example/**/*"
     ]
 }

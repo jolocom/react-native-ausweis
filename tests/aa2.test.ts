@@ -17,19 +17,18 @@ const successGetInfoMsg: Message = {
     }
 }
 
-const mockAa2Impl = (messages: Message[] = []) => {
-    return {
-        getNewEvents: async () => messages.map(msg => JSON.stringify(msg)),
-        sendCMD: async (_: Object) => true,
-        initAASdk: async() => {}
-    }
+const testEmitter = () => {
+    on: (event: Event, callback: Function) => {}
+}
+
+const mockAa2Impl = {
+    sendCMD: (_: Object) => true,
+    initAASdk: () => {}
 }
 
 it("Correctly runs getInfo", async () => {
-    const testAaModule = new Aa2Module(mockAa2Impl([
-        initSdkMsg,
-        successGetInfoMsg
-    ]))
+
+    const testAaModule = new Aa2Module(mockAa2Impl, )
 
     await testAaModule.initAa2Sdk()
 
@@ -67,8 +66,7 @@ it("Correctly handles valid auth request", async () => {
     const resp = await testAaModule.runAuth("https://example.com")
     console.log(resp)
 })
-
-it("Correctly handles invalid auth request", async () => {
+it("Correctly handles valid auth request", async () => {
     const accessRightsMsg = {
         msg: "ACCESS_RIGHTS",
         aux:
