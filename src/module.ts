@@ -38,6 +38,7 @@ export class Aa2Module {
     this.nativeAa2Module = aa2Implementation
 
     eventEmitter.addListener(Events.message, (response: string) => {
+      console.log(response)
       const parsed = JSON.parse(response)
       this.onMessage(JSON.parse(parsed.message))
     })
@@ -75,6 +76,9 @@ export class Aa2Module {
         }
       )
     })
+  }
+
+  public async disconnectAa2Sdk() {
   }
 
 

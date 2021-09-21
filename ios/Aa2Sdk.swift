@@ -21,17 +21,20 @@ class Emitter: RCTEventEmitter {
     }
     
 }
+struct MSGResponse: Encodable {
+    var message: String
+}
 
-extension Notification.Name {
-    static let didInitialize = Notification.Name("didInitialize")
-    static let didReceiveMessage = Notification.Name("didReceiveMessage")
+struct ERRORResponse: Encodable {
+    var error: String
 }
 
 func cb(msg: Optional<UnsafePointer<Int8>>) -> Void {
-    Emitter.shared?.sendEvent(withName: "onMessage", body: 5
-    )
     if let response = msg {
-        Emitter.shared?.sendEvent(withName: "onMessage", body: String(cString: response))
+        let message = MSGResponse(message: String(cString: response))
+        // TODO Switch from error propagation to throwing an error.
+        let encodedMessage = try! JSONEncoder().encode(message)
+        Emitter.shared?.sendEvent(withName: "onMessage", body: String(data: encodedMessage, encoding: .utf8))
     } else {
         Emitter.shared?.sendEvent(withName: "onSdkInit", body: nil)
     }
@@ -41,57 +44,32 @@ func cb(msg: Optional<UnsafePointer<Int8>>) -> Void {
 
 @objc(Aa2Sdk)
 class Aa2Sdk: NSObject {
-    var messages: [String] = []
-    private let notificationCenter = NotificationCenter.default
-    private let emitter = Emitter()
+    // private let emitter = Emitter()
     
     @objc func sendCMD(_ command: String, resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         ausweisapp2_send(command)
         
-        self.emitter.sendEvent(withName: "onCommandSentSuccesfully", body: nil)
+        Emitter.shared?.sendEvent(withName: "onCommandSentSuccessfully", body: nil)
         resolve(true)
     }
     
     
     @objc func initAASdk(_ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        // TODO Move to constructor
-        notificationCenter.addObserver(
-            self,
-            selector: #selector(self.handleNotification(notification:)),
-            name: .didInitialize,
-            object: nil
-        )
-        // TODO Move to constructor
-
-        notificationCenter.addObserver(
-            self,
-            selector: #selector(self.handleNotification(notification:)),
-            name: .didReceiveMessage,
-            object: nil)
-        
         if (ausweisapp2_init(cb)) {
-            self.emitter.sendEvent(withName: "onSdkInit", body: nil)
+            Emitter.shared?.sendEvent(withName: "onSdkInit", body: nil)
         } else {
-            // TODO Throw an error / emit an error here.
+            Emitter.shared?.sendEvent(
+                withName: "onError",
+                body: String(data: try! JSONEncoder().encode(ERRORResponse(error: "SDK already initialized")), encoding: .utf8)
+            )
         }
 
         resolve(nil)
     }
     
-    @objc func handleNotification(notification: Notification) {
-        if let userInfo = notification.userInfo as? Dictionary<String, String>{
-            if let response = userInfo["response"] {
-                self.messages.append(response)
-            }
-        }
-    }
-    
-    @objc func getNewEvents(_ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        resolve(self.messages)
-        self.messages.removeAll()
-    }
-    
     @objc func disconnectSdk() {
-        print("TODO IMPLEMENT")
+        ausweisapp2_shutdown()
+        Emitter.shared?.sendEvent(withName: "onSdkDisconnect", body: nil)
+
     }
 }

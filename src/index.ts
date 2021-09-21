@@ -1,15 +1,16 @@
-import { NativeModules, DeviceEventEmitter, NativeEventEmitter } from 'react-native';
+import {
+  NativeModules,
+  Platform,
+  NativeEventEmitter,
+  DeviceEventEmitter,
+} from 'react-native';
+
 import { Aa2Module } from './module';
 import { Events } from './types';
 
-const { Aa2Sdk, Emitter } = NativeModules;
+const emitter = Platform.select({
+  ios: new NativeEventEmitter(NativeModules.Emitter),
+  android: DeviceEventEmitter,
+});
 
-const eventEmitter = new NativeEventEmitter(Emitter);
-
-eventEmitter.addListener("onMessage", (body) => {
-  alert(333)
-  console.log({body})
-})
-
-DeviceEventEmitter.addListener(event, callback)
-export const aa2Module = new Aa2Module(Aa2Sdk, androidEmitterWrapper)
+export const aa2Module = new Aa2Module(NativeModules.Aa2Sdk, emitter)
