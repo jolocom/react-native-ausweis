@@ -39,3 +39,10 @@ RCT_EXTERN_METHOD(disconnectSdk
                   rejecter :(RCTPromiseRejectBlock)reject
                   )
 @end
+
+
+@interface RCT_EXTERN_MODULE(Emitter, RCTEventEmitter)
+
+RCT_EXTERN_METHOD(supportedEvents)
+
+@end

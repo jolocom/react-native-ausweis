@@ -8,34 +8,47 @@
 import Foundation
 import AusweisApp2
 
+@objc(Emitter)
+class Emitter: RCTEventEmitter {
+    public static var shared:Emitter?
+    
+    override init() {
+        super.init()
+        Emitter.shared = self
+    }
+    override func supportedEvents() -> [String]! {
+        return ["onMessage", "onError", "onSdkInit", "onSdkDisconnect", "onSessionIdReceive", "onCommandSentSuccessfully", "onNewIntentSuccess"]
+    }
+    
+}
+
 extension Notification.Name {
     static let didInitialize = Notification.Name("didInitialize")
     static let didReceiveMessage = Notification.Name("didReceiveMessage")
 }
 
 func cb(msg: Optional<UnsafePointer<Int8>>) -> Void {
+    Emitter.shared?.sendEvent(withName: "onMessage", body: 5
+    )
     if let response = msg {
-        NotificationCenter.default.post(
-            name: .didReceiveMessage,
-            object: response,
-            userInfo: ["response": String(cString: response)]
-        )
+        Emitter.shared?.sendEvent(withName: "onMessage", body: String(cString: response))
     } else {
-        NotificationCenter.default.post(
-            name: .didInitialize,
-            object: nil,
-            userInfo: ["response": "{\"msg\": \"INIT\"}"]
-        )
+        Emitter.shared?.sendEvent(withName: "onSdkInit", body: nil)
     }
 }
+
+
 
 @objc(Aa2Sdk)
 class Aa2Sdk: NSObject {
     var messages: [String] = []
     private let notificationCenter = NotificationCenter.default
+    private let emitter = Emitter()
     
     @objc func sendCMD(_ command: String, resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         ausweisapp2_send(command)
+        
+        self.emitter.sendEvent(withName: "onCommandSentSuccesfully", body: nil)
         resolve(true)
     }
     
@@ -56,7 +69,11 @@ class Aa2Sdk: NSObject {
             name: .didReceiveMessage,
             object: nil)
         
-        ausweisapp2_init(cb)
+        if (ausweisapp2_init(cb)) {
+            self.emitter.sendEvent(withName: "onSdkInit", body: nil)
+        } else {
+            // TODO Throw an error / emit an error here.
+        }
 
         resolve(nil)
     }

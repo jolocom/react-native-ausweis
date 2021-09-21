@@ -24,12 +24,7 @@ const createRequestSummary = (request: Request, callback: CB): RequestSummary =>
 }
 
 interface Emitter {
-  on: (event: Events, callback: Function) => void
-}
-
-interface AA2Implementation {
-  sendCMD: (cmd: string) => void,
-  initAASdk: () => void,
+  addListener: (event: Events, callback: Function) => void
 }
 
 export class Aa2Module {
@@ -42,21 +37,21 @@ export class Aa2Module {
   constructor(aa2Implementation: any, eventEmitter: Emitter) {
     this.nativeAa2Module = aa2Implementation
 
-    eventEmitter.on(Events.message, (response: string) => {
+    eventEmitter.addListener(Events.message, (response: string) => {
       const parsed = JSON.parse(response)
       this.onMessage(JSON.parse(parsed.message))
     })
 
-    eventEmitter.on(Events.sdkInitialized, () => this.onMessage({'msg': 'INIT'}));
+    eventEmitter.addListener(Events.sdkInitialized, () => this.onMessage({'msg': 'INIT'}));
 
-    eventEmitter.on(Events.error, (err) => {
+    eventEmitter.addListener(Events.error, (err) => {
       // TODO Abstract to helper, e.g. rejectCurrentOperation
       const {error} = JSON.parse(err)
       this.currentOperation.callback(error, null)
       this.currentOperation = undefined
     });
 
-    eventEmitter.on(Events.commandSentSuccessfully, () => {
+    eventEmitter.addListener(Events.commandSentSuccessfully, () => {
       // TODO
       if (this.currentOperation) {
         this.currentOperation.requestSent = true
