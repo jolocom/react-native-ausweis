@@ -81,8 +81,11 @@ export class Aa2Module {
   public async disconnectAa2Sdk() {
   }
 
-
   private async sendCmd(request: Request, callback: CB): Promise<void> {
+      if (!this.isInitialized) {
+        throw new Error("SdkNotInitialized")
+      }
+
       const operation = {
         request,
         callback,
