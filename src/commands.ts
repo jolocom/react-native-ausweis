@@ -94,3 +94,13 @@ export const acceptAuthReqCmd = (): Request => {
     }
   }
 }
+
+export const getCertificate = (): Request => {
+  return {
+    command: { cmd:  'GET_CERTIFICATE' },
+    responseConditions: {
+      success: filters.getCertificate,
+      failure: (_) => false
+    }
+  }
+}
