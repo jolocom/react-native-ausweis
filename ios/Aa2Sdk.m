@@ -19,25 +19,11 @@
 #endif
 
 @interface RCT_EXTERN_MODULE(Aa2Sdk, NSObject)
-RCT_EXTERN_METHOD(sendCMD: (NSString *) cmd
-                  resolve: (RCTPromiseResolveBlock)resolve
-                  rejecter :(RCTPromiseRejectBlock)reject
-                  )
+RCT_EXTERN_METHOD(sendCMD: (NSString *) cmd)
 
-RCT_EXTERN_METHOD(initAASdk:
-                  (RCTPromiseResolveBlock)resolve
-                  rejecter :(RCTPromiseRejectBlock)reject
-                  )
+RCT_EXTERN_METHOD(initAASdk)
 
-RCT_EXTERN_METHOD(getNewEvents:
-                  (RCTPromiseResolveBlock)resolve
-                  rejecter :(RCTPromiseRejectBlock)reject
-                  )
-
-RCT_EXTERN_METHOD(disconnectSdk
-                  (RCTPromiseResolveBlock)resolve
-                  rejecter :(RCTPromiseRejectBlock)reject
-                  )
+RCT_EXTERN_METHOD(disconnectSdk)
 @end
 
 

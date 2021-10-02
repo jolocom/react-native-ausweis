@@ -1,4 +1,5 @@
 import { acceptAuthReqCmd, enterPinCmd, getInfoCmd, runAuthCmd, Request, initSdkCmd } from './commands';
+import { SdkInitializationError, SdkNotInitializedError } from './errors';
 import { filters } from './responseFilters';
 import { Filter, Message, Events } from './types';
 
@@ -37,13 +38,20 @@ export class Aa2Module {
   constructor(aa2Implementation: any, eventEmitter: Emitter) {
     this.nativeAa2Module = aa2Implementation
 
-    eventEmitter.addListener(Events.message, (response: string) => {
-      console.log(response)
-      const parsed = JSON.parse(response)
-      this.onMessage(JSON.parse(parsed.message))
-    })
-
     eventEmitter.addListener(Events.sdkInitialized, () => this.onMessage({'msg': 'INIT'}));
+
+    eventEmitter.addListener(Events.message, (response: string) => {
+      const { message, error } = JSON.parse(response)
+
+      if (message) {
+        this.onMessage(JSON.parse(message))
+      } else if (error) {
+
+        // Stop the currently running operation.
+        this.currentOperation.callback(JSON.parse(error), null)
+        this.currentOperation = undefined
+      }
+    })
 
     eventEmitter.addListener(Events.error, (err) => {
       // TODO Abstract to helper, e.g. rejectCurrentOperation
@@ -53,7 +61,6 @@ export class Aa2Module {
     });
 
     eventEmitter.addListener(Events.commandSentSuccessfully, () => {
-      // TODO
       if (this.currentOperation) {
         this.currentOperation.requestSent = true
       }
@@ -67,8 +74,9 @@ export class Aa2Module {
       this.currentOperation = createRequestSummary(
         initSdkCmd(),
         (error: Message, message: Message) => {
+
           if (error) {
-            return reject(error)
+            return reject(new SdkInitializationError())
           }
 
           this.isInitialized = true
@@ -83,7 +91,7 @@ export class Aa2Module {
 
   private async sendCmd(request: Request, callback: CB): Promise<void> {
       if (!this.isInitialized) {
-        throw new Error("SdkNotInitialized")
+        throw new SdkNotInitializedError()
       }
 
       const operation = {
@@ -94,8 +102,8 @@ export class Aa2Module {
 
       if (!this.currentOperation) {
         this.currentOperation = operation
-        this.nativeAa2Module.sendCMD(JSON.stringify(request.command));
 
+        this.nativeAa2Module.sendCMD(JSON.stringify(request.command));
       } else {
         this.queuedOperations.push(operation)
       }
@@ -110,6 +118,7 @@ export class Aa2Module {
 
     const { request: { responseConditions }, callback } = this.currentOperation
 
+    // This is a nested layer of error handling, besides the top level error vs message
     if (responseConditions.success(message)) {
       this.currentOperation = undefined
 
