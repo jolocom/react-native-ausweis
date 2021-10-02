@@ -35,6 +35,9 @@ const mockAa2Impl = {
     sendCMD: async (_: Object) => true,
     initAASdk: async () => {}
 }
+const delay = async (duration: number) => new Promise((resolve, _) => {
+    setTimeout(resolve, duration)
+})
 
 describe("Initializing the AA2 SDK", () => {
     it("Correctly handles succesfull initalization", async () => {
@@ -42,6 +45,10 @@ describe("Initializing the AA2 SDK", () => {
         aa2Sdk.initAa2Sdk()
 
         expect(aa2Sdk.isInitialized).toBe(false)
+
+        await delay(3000)
+        expect(aa2Sdk.isInitialized).toBe(false)
+
         emitter.dispatch(Events.sdkInitialized)
         expect(aa2Sdk.isInitialized).toBe(true)
     })
@@ -49,10 +56,9 @@ describe("Initializing the AA2 SDK", () => {
     it("Correctly throws if the AA2 SDK is already initialized", async () => {
         const aa2Sdk = new Aa2Module(mockAa2Impl, emitter)
         const promise = aa2Sdk.initAa2Sdk()
+        emitter.dispatch(Events.error, JSON.stringify({error: "SdkInitializationException"}))
 
-        // TODO What is the structure of the error here?, check with JAVA layer
-        emitter.dispatch(Events.error, JSON.stringify({errror: "SDK Already initialized"}))
-        await expect(promise).rejects.toEqual("hello")
+        await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(`"AusweisApp2 SDK already initialized."`)
     })
 
     it("Correctly throws in case of an unexpected error", async () => {
@@ -60,17 +66,76 @@ describe("Initializing the AA2 SDK", () => {
     })
 })
 
-describe("Send Command", () => {
-    it("Correctly fails to send the command if the SDK is not initialized", async() => {
+const wrap = (msg: Object) => JSON.stringify({ message: JSON.stringify(msg)})
+
+describe("Workflow, Minimal successful authentication", () => {
+
+    it ("Runs", async () => {
         const aa2Sdk = new Aa2Module(mockAa2Impl, emitter)
-        expect(aa2Sdk.getInfo()).rejects.toEqual("YEA")
-    })
+        aa2Sdk.initAa2Sdk()
+        emitter.dispatch(Events.sdkInitialized)
 
-    it("Correctly fails in case no confirmation for a sent command is received", async() => {
-    })
+        const processReqPromise = aa2Sdk.processRequest("https://test.governikus-eid.de/DEMO")
+        emitter.dispatch(Events.message, wrap({"msg": "AUTH"}))
 
-    it("Correctly queues parallel commands", async () => {
+        const accessRightsMsg = {
+            "msg": "ACCESS_RIGHTS",
+            "chat": {
+                "effective":["GivenNames","DocumentType"],
+                "optional":["GivenNames"],
+                "required":["DocumentType"]
+            }
+        }
+
+        emitter.dispatch(Events.message, wrap(accessRightsMsg))
+        await expect(processReqPromise).resolves.toStrictEqual(accessRightsMsg)
+        aa2Sdk.acceptAuthRequest()
+        emitter.dispatch(Events.message, wrap({"msg": "INSERT_CARD"}))
+
+        const cardReadPromise = aa2Sdk.checkIfCardWasRead()
+
+        const pinMessage = {
+            "msg": "ENTER_PIN",
+            "reader": {
+                "attached":true
+                ,"card":{"inoperative":false,"deactivated":false,"retryCounter":3},
+                "keypad":false,
+                "name":"NFC"
+            }
+        }
+
+        emitter.dispatch(Events.message,wrap(pinMessage))
+
+        await expect(cardReadPromise).resolves.toStrictEqual(pinMessage)
+
+        const pinPromise = aa2Sdk.enterPin(111111)
+
+        const authMessage = {
+            "msg": "AUTH",
+            "result": { "major" : "http://www.bsi.bund.de/ecard/api/1.1/resultmajor#ok" },
+            "url":"https://test.governikus-eid.de/DEMO/?refID=123456"
+        }
+
+        emitter.dispatch(
+            Events.message,
+            wrap(authMessage)
+        )
+
+        await expect(pinPromise).resolves.toStrictEqual(authMessage)
     })
+})
+
+describe("Send Command", () => {
+    // it("Correctly fails to send the command if the SDK is not initialized", async() => {
+    //     const aa2Sdk = new Aa2Module(mockAa2Impl, emitter)
+    //     expect(aa2Sdk.getInfo()).rejects.toEqual("YEA")
+    // })
+
+    // it("Correctly fails in case no confirmation for a sent command is received", async() => {
+    // })
+
+    // it("Correctly queues parallel commands", async () => {
+    // })
 })
 
 describe("Pin management", () => {
