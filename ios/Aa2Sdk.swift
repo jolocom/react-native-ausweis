@@ -20,21 +20,27 @@ class Emitter: RCTEventEmitter {
         return ["onMessage", "onError", "onSdkInit", "onSdkDisconnect", "onSessionIdReceive", "onCommandSentSuccessfully", "onNewIntentSuccess"]
     }
     
+    @objc static override func requiresMainQueueSetup() -> Bool {
+        return false
+    }
 }
-struct MSGResponse: Encodable {
+
+struct OkResponse: Encodable {
     var message: String
 }
 
-struct ERRORResponse: Encodable {
+struct ErrorResponse: Encodable {
     var error: String
 }
 
+
 func cb(msg: Optional<UnsafePointer<Int8>>) -> Void {
-    if let response = msg {
-        let message = MSGResponse(message: String(cString: response))
-        // TODO Switch from error propagation to throwing an error.
-        let encodedMessage = try! JSONEncoder().encode(message)
-        Emitter.shared?.sendEvent(withName: "onMessage", body: String(data: encodedMessage, encoding: .utf8))
+    if let unwrapped = msg {
+        let response = OkResponse(message: String(cString: unwrapped))
+        // TODO Better handling here
+        let jsonString = try! JSONEncoder().encode(response)
+        
+        Emitter.shared?.sendEvent(withName: "onMessage", body: String(data: jsonString, encoding: .utf8))
     } else {
         Emitter.shared?.sendEvent(withName: "onSdkInit", body: nil)
     }
@@ -44,32 +50,32 @@ func cb(msg: Optional<UnsafePointer<Int8>>) -> Void {
 
 @objc(Aa2Sdk)
 class Aa2Sdk: NSObject {
-    // private let emitter = Emitter()
-    
-    @objc func sendCMD(_ command: String, resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        ausweisapp2_send(command)
-        
-        Emitter.shared?.sendEvent(withName: "onCommandSentSuccessfully", body: nil)
-        resolve(true)
+    @objc func sendCMD(_ command: String) {
+        if(ausweisapp2_is_running()) {
+            ausweisapp2_send(command)
+            Emitter.shared?.sendEvent(withName: "onCommandSentSuccessfully", body: nil)
+        } else {
+            Emitter.shared?.sendEvent(withName: "onError", body: "SdkNotInitializedException")
+        }
+      
     }
     
     
-    @objc func initAASdk(_ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        if (ausweisapp2_init(cb)) {
-            Emitter.shared?.sendEvent(withName: "onSdkInit", body: nil)
-        } else {
+    @objc func initAASdk() {
+        if (!ausweisapp2_init(cb)) {
             Emitter.shared?.sendEvent(
                 withName: "onError",
-                body: String(data: try! JSONEncoder().encode(ERRORResponse(error: "SDK already initialized")), encoding: .utf8)
+                body: String(data: try! JSONEncoder().encode(ErrorResponse(error: "SdkInitializationException")), encoding: .utf8)
             )
         }
-
-        resolve(nil)
     }
     
     @objc func disconnectSdk() {
-        ausweisapp2_shutdown()
-        Emitter.shared?.sendEvent(withName: "onSdkDisconnect", body: nil)
-
+        if (!ausweisapp2_is_running()) {
+            Emitter.shared?.sendEvent(withName: "onError", body: "SdkNotInitializedException")
+        } else {
+            ausweisapp2_shutdown()
+            Emitter.shared?.sendEvent(withName: "onSdkDisconnect", body: nil)
+        }
     }
 }
