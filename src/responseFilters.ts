@@ -10,6 +10,7 @@ export const filters = {
   // TODO What about TAN?
   enterPinMsg: (message: Message) => message.msg === 'ENTER_PIN',
   apiLvlMsg: (message: Message) => message.msg === 'API_LEVEL',
+  getCertificate: (message: Message) => message.msg === "CERTIFICATE"
 };
 
 

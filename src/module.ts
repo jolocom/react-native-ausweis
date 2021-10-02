@@ -1,4 +1,4 @@
-import { acceptAuthReqCmd, enterPinCmd, getInfoCmd, runAuthCmd, Request, initSdkCmd } from './commands';
+import { acceptAuthReqCmd, enterPinCmd, getInfoCmd, runAuthCmd, Request, initSdkCmd, getCertificate, cancelFlow } from './commands';
 import { SdkInitializationError, SdkNotInitializedError } from './errors';
 import { filters } from './responseFilters';
 import { Filter, Message, Events } from './types';
@@ -179,6 +179,18 @@ export class Aa2Module {
   public async acceptAuthRequest() {
     return new Promise((resolve, reject) => {
       this.sendCmd(acceptAuthReqCmd(), (error, message) => error ? reject(error) : resolve(message))
+    })
+  }
+
+  public async getCertificate() {
+    return new Promise((resolve, reject) => {
+      this.sendCmd(getCertificate(), (error, message) => error ? reject(error) : resolve(message))
+    })
+  }
+
+  public cancelFlow() {
+    return new Promise((resolve, reject) => {
+      this.sendCmd(cancelFlow(), (error, message) => error ? reject(error) : resolve(message))
     })
   }
 

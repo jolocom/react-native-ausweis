@@ -1,7 +1,7 @@
 {
   "name": "react-native-aa2-sdk",
   "title": "React Native Aa2 Sdk",
-  "version": "1.0.0",
+  "version": "1.0.6",
   "description": "TODO",
   "main": "./js/index.js",
   "files": [

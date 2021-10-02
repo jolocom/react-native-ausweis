@@ -94,3 +94,23 @@ export const acceptAuthReqCmd = (): Request => {
     }
   }
 }
+
+export const getCertificate = (): Request => {
+  return {
+    command: { cmd:  'GET_CERTIFICATE' },
+    responseConditions: {
+      success: filters.getCertificate,
+      failure: (_) => false
+    }
+  }
+}
+
+export const cancelFlow = (): Request => {
+  return {
+    command: { cmd:  'CANCEL' },
+    responseConditions: {
+      success: filters.authMsg,
+      failure: (_) => false
+    }
+  }
+}
