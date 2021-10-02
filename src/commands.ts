@@ -104,3 +104,13 @@ export const getCertificate = (): Request => {
     }
   }
 }
+
+export const cancelFlow = (): Request => {
+  return {
+    command: { cmd:  'CANCEL' },
+    responseConditions: {
+      success: filters.authMsg,
+      failure: (_) => false
+    }
+  }
+}
