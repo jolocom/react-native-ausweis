@@ -11,6 +11,7 @@ import {
   EventHandlers,
   enterCanCmd,
   enterPukCmd,
+  setAccessRights
 } from "./commands"
 import { SdkNotInitializedError } from "./errors"
 import { selectors } from "./responseFilters"
@@ -250,5 +251,9 @@ export class Aa2Module {
 
   public cancelFlow() {
     return this.sendCmd(cancelFlow())
+  }
+
+  public setAccessRights(optionalFields: Array<string>) {
+    return this.sendCmd(setAccessRights(optionalFields))
   }
 }

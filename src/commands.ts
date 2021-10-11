@@ -219,3 +219,13 @@ export const cancelFlow = (): CommandDefinition => {
     },
   }
 }
+
+export const setAccessRights = (optionalFields: Array<string>): CommandDefinition => {
+  return {
+    command: { cmd:  'SET_ACCESS_RIGHTS', chat: optionalFields },
+    handler: {
+      canHandle: [selectors.accessRightsMsg],
+      handle: (message, _, {resolve}) => resolve(message)
+    }
+  }
+}
