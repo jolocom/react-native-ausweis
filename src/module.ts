@@ -1,143 +1,214 @@
-import { acceptAuthReqCmd, enterPinCmd, getInfoCmd, runAuthCmd, Request, initSdkCmd, getCertificate, cancelFlow } from './commands';
-import { SdkInitializationError, SdkNotInitializedError } from './errors';
-import { filters } from './responseFilters';
-import { Filter, Message, Events } from './types';
+import {
+  acceptAuthReqCmd,
+  enterPinCmd,
+  getInfoCmd,
+  runAuthCmd,
+  CommandDefinition,
+  initSdkCmd,
+  getCertificate,
+  cancelFlow,
+  HandlerDefinition,
+  EventHandlers,
+  enterCanCmd,
+  enterPukCmd,
+} from "./commands"
+import { SdkNotInitializedError } from "./errors"
+import { selectors } from "./responseFilters"
+import { Filter, Message, Events } from "./types"
 
 const delay = async (delay: number) => {
-  return new Promise(resolve => setTimeout(resolve, delay));
-};
-
-
-type CB = (error: Message | null, message: Message | null) => void
-
-type RequestSummary = {
-  request: Request,
-  requestSent: boolean
-  callback: CB
-}
-
-const createRequestSummary = (request: Request, callback: CB): RequestSummary => {
-  return {
-    request,
-    callback,
-    requestSent: false
-  }
+  return new Promise((resolve) => setTimeout(resolve, delay))
 }
 
 interface Emitter {
   addListener: (event: Events, callback: Function) => void
 }
 
+const insertCardHandler: HandlerDefinition = {
+  canHandle: [selectors.insertCardMsg],
+  handle: (_, { handleCardRequest }, __) => {
+    console.log(handleCardRequest)
+    return handleCardRequest && handleCardRequest()
+  }
+}
+
+// TODO
+// const newReaderHandler: HandlerDefinition = {
+// }
+
 export class Aa2Module {
   private nativeAa2Module: any
   private unprocessedMessages: Object[] = []
-  private currentOperation: RequestSummary | undefined
-  private queuedOperations: RequestSummary[] = []
+  private currentOperation:
+    | (CommandDefinition & {
+        callbacks: {
+          resolve: Function
+          reject: Function
+        }
+      })
+    | undefined
+
+  private queuedOperations: Array<CommandDefinition & {callbacks: {resolve: Function, reject: Function}}> = []
+  private handlers: HandlerDefinition[] = [insertCardHandler]
+  private eventHandlers: Partial<EventHandlers> = {}
+
   public isInitialized = false
 
   constructor(aa2Implementation: any, eventEmitter: Emitter) {
     this.nativeAa2Module = aa2Implementation
 
-    eventEmitter.addListener(Events.sdkInitialized, () => this.onMessage({'msg': 'INIT'}));
+    eventEmitter.addListener(Events.sdkInitialized, () =>
+      this.onMessage({ msg: "INIT" })
+    )
 
     eventEmitter.addListener(Events.message, (response: string) => {
       const { message, error } = JSON.parse(response)
 
+      if (error) {
+        this.rejectCurrentOperation(error)
+      }
+
       if (message) {
         this.onMessage(JSON.parse(message))
-      } else if (error) {
-
-        // Stop the currently running operation.
-        this.currentOperation.callback(JSON.parse(error), null)
-        this.currentOperation = undefined
       }
     })
 
     eventEmitter.addListener(Events.error, (err) => {
-      // TODO Abstract to helper, e.g. rejectCurrentOperation
-      const {error} = JSON.parse(err)
-      this.currentOperation.callback(error, null)
-      this.currentOperation = undefined
-    });
-
-    eventEmitter.addListener(Events.commandSentSuccessfully, () => {
-      if (this.currentOperation) {
-        this.currentOperation.requestSent = true
-      }
+      const { error } = JSON.parse(err)
+      this.rejectCurrentOperation(error)
     })
+  }
+
+  // TODO Change to controllerFunctions?
+  public setHandlers(eventHandlers: Partial<EventHandlers>) {
+    this.eventHandlers = { ...this.eventHandlers, ...eventHandlers }
   }
 
   public async initAa2Sdk() {
     return new Promise((resolve, reject) => {
       this.nativeAa2Module.initAASdk()
 
-      this.currentOperation = createRequestSummary(
-        initSdkCmd(),
-        (error: Message, message: Message) => {
+      const initCmd = initSdkCmd((_, __, callback) => {
+        this.isInitialized = true
 
-          if (error) {
-            return reject(new SdkInitializationError())
-          }
+        this.currentOperation.callbacks.resolve()
 
-          this.isInitialized = true
-          return resolve(message)
-        }
-      )
+        return this.clearCurrentOperation()
+      })
+
+      this.currentOperation = {
+        ...initCmd,
+        callbacks: { resolve, reject },
+      }
     })
   }
 
-  public async disconnectAa2Sdk() {
+  /**
+   * @see https://www.ausweisapp.bund.de/sdk/commands.html#get-info
+   */
+
+  public async getInfo() {
+    return this.sendCmd(
+      getInfoCmd()
+    )
   }
 
-  private async sendCmd(request: Request, callback: CB): Promise<void> {
-      if (!this.isInitialized) {
-        throw new SdkNotInitializedError()
-      }
+  /**
+   * @see https://www.ausweisapp.bund.de/sdk/commands.html#run-auth
+   */
 
-      const operation = {
-        request,
-        callback,
-        requestSent: false
+  public async processRequest(tcTokenUrl: string) {
+    return this.sendCmd(
+      runAuthCmd(tcTokenUrl)
+    )
+  }
+
+  private rejectCurrentOperation(errorMessage: string) {
+    if (!this.currentOperation) {
+      throw new Error("TODO")
+    }
+
+    this.currentOperation.callbacks.reject(new Error(errorMessage))
+    this.clearCurrentOperation()
+    return
+  }
+
+  private clearCurrentOperation() {
+    this.currentOperation = undefined
+  }
+
+  public async disconnectAa2Sdk() {}
+
+  private async sendCmd({
+    command,
+    handler,
+  }: CommandDefinition): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!this.isInitialized) {
+        return reject(new SdkNotInitializedError())
       }
 
       if (!this.currentOperation) {
-        this.currentOperation = operation
-
-        this.nativeAa2Module.sendCMD(JSON.stringify(request.command));
+        this.currentOperation = {
+          command,
+          handler,
+          callbacks: {
+            resolve: (message) => {
+              this.clearCurrentOperation()
+              this.fireNextCommand()
+              return resolve(message)
+            },
+            reject: (error) => {
+              this.clearCurrentOperation()
+              this.fireNextCommand()
+              return reject(error)
+            },
+          },
+        }
+        this.nativeAa2Module.sendCMD(JSON.stringify(command))
       } else {
-        this.queuedOperations.push(operation)
+        this.queuedOperations.push({ command, handler, callbacks: { resolve, reject} })
+        return
       }
+    })
   }
 
-  // TODO Message should be added to unprocessed if both filters failed as well
   private onMessage(message: Message) {
+    const { handle } =
+      this.handlers.find(({ canHandle }) =>
+        canHandle.some((check) => check(message))
+      ) || {}
+
+    if (handle) {
+      return handle(message, this.eventHandlers, this.currentOperation.callbacks)
+    }
+
     if (!this.currentOperation) {
       this.unprocessedMessages.push(message)
       return
     }
 
-    const { request: { responseConditions }, callback } = this.currentOperation
+    const { handler, callbacks } = this.currentOperation
 
-    // This is a nested layer of error handling, besides the top level error vs message
-    if (responseConditions.success(message)) {
-      this.currentOperation = undefined
-
-      callback(null, message)
-    } else if (responseConditions.failure && responseConditions.failure(message)) {
-      this.currentOperation = undefined
-      callback(message, null)
+    if (handler.canHandle.some((f) => f(message))) {
+      return handler.handle(message, this.eventHandlers, callbacks)
     }
 
-    const [queuedRequest, ...rest] = this.queuedOperations
 
-    if (queuedRequest) {
-      this.queuedOperations = rest
-      return this.sendCmd(queuedRequest.request, queuedRequest.callback)
+    this.unprocessedMessages.push(message)
+  }
+
+  private fireNextCommand() {
+    const [nextCommand, ...commandQueue] = this.queuedOperations
+
+    if (nextCommand) {
+      this.queuedOperations = commandQueue
+      return this.sendCmd(nextCommand).then(v => nextCommand.callbacks.resolve(v)).catch(e => nextCommand.callbacks.reject(e))
     }
   }
 
   private async waitTillCondition(filter: Filter, pollInterval = 1500) {
-    await delay(pollInterval);
+    await delay(pollInterval)
 
     const relevantResponse = this.unprocessedMessages.filter(filter)
 
@@ -148,55 +219,36 @@ export class Aa2Module {
     } else {
       return this.waitTillCondition(filter, pollInterval)
     }
-  };
+  }
 
   public async checkIfCardWasRead() {
-    return this.waitTillCondition(filters.enterPinMsg)
+    return this.waitTillCondition(selectors.enterPinMsg)
   }
 
-  public async getInfo() {
-    return new Promise((resolve, reject) => {
-      this.sendCmd(getInfoCmd(), (error, message) => error ? reject(error) : resolve(message));
-    })
-  }
-
-  public async processRequest(tcTokenUrl: string) {
-    return new Promise((resolve, reject) => {
-      this.sendCmd(runAuthCmd(tcTokenUrl), (error, message) => error ? reject(error) : resolve(message))
-    })
-  }
-
-  public async cancelAuth() {
-    // return this.sendCmd({cmd: 'CANCEL'}) // ?
-  }
-
+  // TODO Make sure 5 / 6 digits
   public async enterPin(pin: number) {
-    return new Promise((resolve, reject) => {
-      this.sendCmd(enterPinCmd(pin), (error, message) => error ? reject(error) : resolve(message))
-    })
+    return this.sendCmd(enterPinCmd(pin))
+  }
+
+  // TODO Make sure 6 digits
+  public async enterCan(can: number) {
+    return this.sendCmd(enterCanCmd(can))
+  }
+
+  // TODO Make sure 10 digits
+  public async enterPUK(puk: number) {
+    return this.sendCmd(enterPukCmd(puk))
   }
 
   public async acceptAuthRequest() {
-    return new Promise((resolve, reject) => {
-      this.sendCmd(acceptAuthReqCmd(), (error, message) => error ? reject(error) : resolve(message))
-    })
+    return this.sendCmd(acceptAuthReqCmd())
   }
 
   public async getCertificate() {
-    return new Promise((resolve, reject) => {
-      this.sendCmd(getCertificate(), (error, message) => error ? reject(error) : resolve(message))
-    })
+    return this.sendCmd(getCertificate())
   }
 
   public cancelFlow() {
-    return new Promise((resolve, reject) => {
-      this.sendCmd(cancelFlow(), (error, message) => error ? reject(error) : resolve(message))
-    })
+    return this.sendCmd(cancelFlow())
   }
-
-  // public async getApiLevel() {
-  //   return new Promise((resolve, reject) => {
-  //   return this.sendCmd({cmd: 'GET_API_LEVEL'}, (error, message) => error ? reject(error) : resolve(message))
-  //   })
-  // }
 }

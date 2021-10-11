@@ -1,116 +1,221 @@
-import { filters } from "./responseFilters"
-import { Filter } from "./types"
+import { selectors } from "./responseFilters"
+import { Message } from "./types"
 
-export type Request = {
-  command: Object,
-  responseConditions: {
-    success: Filter,
-    failure: Filter
-  }
+type Handler<T = any> = (
+  message: Message,
+  eventHandlers: Partial<EventHandlers>,
+  callbacks: { resolve: Function; reject: Function }
+) => T
+
+export type HandlerDefinition<T = any> = {
+  canHandle: Array<(message: Message) => boolean>
+  handle: Handler<T>
 }
 
-export const initSdkCmd = (): Request => {
+const identity = <T>(arg: T) => arg
+
+export interface EventHandlers {
+  handlePinRequest: (cardInfo: any) => void
+  handleCanRequest: (cardInfo: any) => void
+  handlePukRequest: (cardInfo: any) => void
+  handleCardRequest: () => void
+  handleCardInfo: () => void
+}
+
+export type CommandDefinition = {
+  command: { cmd: string; [k: string]: any }
+  handler: HandlerDefinition
+}
+
+export const initSdkCmd = (callback: Handler): CommandDefinition => ({
+  command: { cmd: "INIT" },
+  handler: {
+    canHandle: [selectors.initMsg],
+    handle: callback,
+  },
+})
+
+export const getInfoCmd = (): CommandDefinition => {
   return {
-    command: { cmd: {cmd: 'INIT'} },
-    responseConditions: {
-      success: filters.initMsg,
-      failure: (_) => false
-    }
+    command: { cmd: "GET_INFO" },
+    handler: {
+      canHandle: [selectors.infoMsg],
+      handle: (message, _, {resolve}) => resolve(message),
+    },
   }
 }
 
-export const getInfoCmd = (): Request => {
-  return {
-    command: {cmd: 'GET_INFO'},
-    responseConditions: {
-      success: filters.infoMsg,
-      failure: (_) => false
-    }
-  }
-}
-
-export const runAuthCmd = (tcTokenURL: string): Request => {
+export const runAuthCmd = (
+  tcTokenURL: string
+): CommandDefinition => {
   return {
     command: {
-      cmd: 'RUN_AUTH',
+      cmd: "RUN_AUTH",
       tcTokenURL,
       handleInterrupt: false,
       messages: {
         sessionStarted:
           "Please place your ID card on the top of the device's back side.",
-        sessionFailed: 'Scanning process failed.',
-        sessionSucceeded: 'Scanning process has been finished successfully.',
-        sessionInProgress: 'Scanning process is in progress.',
+        sessionFailed: "Scanning process failed.",
+        sessionSucceeded: "Scanning process has been finished successfully.",
+        sessionInProgress: "Scanning process is in progress.",
       },
     },
-    responseConditions: {
-      success: filters.accessRightsMsg,
-      failure: (_) => false
-    }
-  }
-}
-
-export const changePinCmd = (): Request => {
-  return { command: {
-    cmd: 'RUN_CHANGE_PIN',
-    handleInterrupt: false,
-    messages: {
-      sessionStarted:
-        "Please place your ID card on the top of the device's back side.",
-      sessionFailed: 'Scanning process failed.',
-      sessionSucceeded: 'Scanning process has been finished successfully.',
-      sessionInProgress: 'Scanning process is in progress.',
-    }
-  },
-           responseConditions: {
-             success: (_) => false,
-             failure: (_) => false
-           }
-  }
-}
-
-
-export const enterPinCmd = (pin: number): Request => {
-  return {
-    command: {
-    cmd: "SET_PIN",
-    value: pin.toString()
-  },
-    responseConditions: {
-             success: filters.authMsg,
-             failure: (_) => false
-    }
-  }
-}
-
-export const acceptAuthReqCmd = (): Request => {
-  return {
-    command: {
-      cmd: 'ACCEPT'
+    handler: {
+      canHandle: [selectors.accessRightsMsg, selectors.authMsg],
+      handle: (message, _, {resolve}) => {
+        if (selectors.accessRightsMsg(message)) {
+          return resolve(message)
+        }
+      },
     },
-    responseConditions: {
-             success: filters.insertCardMsg,
-             failure: (_) => false
-    }
   }
 }
 
-export const getCertificate = (): Request => {
+export const changePinCmd = (): CommandDefinition => {
   return {
-    command: { cmd:  'GET_CERTIFICATE' },
-    responseConditions: {
-      success: filters.getCertificate,
-      failure: (_) => false
-    }
+    command: {
+      cmd: "RUN_CHANGE_PIN",
+      handleInterrupt: false,
+      messages: {
+        sessionStarted:
+          "Please place your ID card on the top of the device's back side.",
+        sessionFailed: "Scanning process failed.",
+        sessionSucceeded: "Scanning process has been finished successfully.",
+        sessionInProgress: "Scanning process is in progress.",
+      },
+    },
+    handler: {
+      canHandle: [],
+      handle: identity,
+    },
   }
 }
 
-export const cancelFlow = (): Request => {
+export const enterPukCmd = (puk: number): CommandDefinition => {
   return {
-    command: { cmd:  'CANCEL' },
-    responseConditions: {
-      success: filters.authMsg,
-      failure: (_) => false
-    }
+    command: {
+      cmd: "SET_PUK",
+      value: puk.toString(),
+    },
+    handler: {
+      canHandle: [selectors.enterPinMsg, enterPukFilter],
+      handle: (message, eventHandlers, { reject, resolve }) => {
+        const { handlePukRequest, handlePinRequest } = eventHandlers
+
+        switch (message.msg) {
+          case "ENTER_PIN":
+            handlePinRequest && handlePinRequest(message.reader?.card)
+            return resolve(message)
+          case "ENTER_PUK":
+            handlePukRequest && handlePukRequest(message.reader?.card)
+            return resolve(message)
+          default:
+            return reject(new Error("Unknown message type"))
+        }
+      },
+    },
+  }
+}
+
+export const enterCanCmd = (can: number): CommandDefinition => {
+  return {
+    command: {
+      cmd: "SET_CAN",
+      value: can.toString(),
+    },
+    handler: {
+      canHandle: [selectors.enterPinMsg, enterCanFilter],
+      handle: (message, eventHandlers, { resolve, reject }) => {
+        const { handleCanRequest, handlePinRequest } = eventHandlers
+
+        switch (message.msg) {
+          case "ENTER_PIN":
+            handlePinRequest && handlePinRequest(message.reader?.card)
+            return resolve(message)
+          case "ENTER_CAN":
+            handleCanRequest && handleCanRequest(message.reader?.card)
+            return resolve(message)
+          default:
+            return reject(new Error("Unknown message type"))
+        }
+      },
+    },
+  }
+}
+
+export const enterPinCmd = (pin: number): CommandDefinition => {
+  return {
+    command: {
+      cmd: "SET_PIN",
+      value: pin.toString(),
+    },
+    handler: {
+      canHandle: [
+        selectors.enterPinMsg,
+        enterCanFilter,
+        enterPukFilter,
+        selectors.authMsg,
+      ],
+      handle: (message, eventHandlers, { resolve, reject }) => {
+        const { handleCanRequest, handlePinRequest, handlePukRequest } =
+          eventHandlers
+
+        switch (message.msg) {
+          case "AUTH":
+            if (message.url) {
+              return resolve(message)
+            }
+            break
+          case "ENTER_PIN":
+            handlePinRequest && handlePinRequest(message.reader?.card)
+            return resolve(message)
+          case "ENTER_PUK":
+            handlePukRequest && handlePukRequest(message.reader?.card)
+            return resolve(message)
+          case "ENTER_CAN":
+            handleCanRequest && handleCanRequest(message.reader?.card)
+            return resolve(message)
+          default:
+            return reject(new Error("Unknown message type"))
+        }
+      },
+    },
+  }
+}
+
+const enterCanFilter = (message: Message) => message.msg === "ENTER_CAN"
+const enterPukFilter = (message: Message) => message.msg === "ENTER_PUK"
+
+export const acceptAuthReqCmd = (): CommandDefinition => {
+  return {
+    command: {
+      cmd: "ACCEPT",
+    },
+    handler: {
+      canHandle: [selectors.insertCardMsg],
+      handle: (_, { handleCardRequest }) =>
+        handleCardRequest && handleCardRequest(),
+    },
+  }
+}
+
+export const getCertificate = (): CommandDefinition => {
+  return {
+    command: { cmd: "GET_CERTIFICATE" },
+    handler: {
+      canHandle: [selectors.getCertificate],
+      handle: (message, _, {resolve}) => resolve(message),
+    },
+  }
+}
+
+export const cancelFlow = (): CommandDefinition => {
+  return {
+    command: { cmd: "CANCEL" },
+    handler: {
+      canHandle: [selectors.authMsg],
+      handle: (message, _, {resolve}) => resolve(message),
+    },
   }
 }

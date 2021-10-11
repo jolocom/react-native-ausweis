@@ -14,7 +14,7 @@
   "scripts": {
     "build": "tsc -p ./tsconfig.json",
     "clean": "rm -rf ./node_modules; rm -rf ./js",
-    "test": "jest"
+    "test": "jest --verbose"
   },
   "repository": {
     "type": "git",
