@@ -33,6 +33,13 @@ const insertCardHandler: HandlerDefinition = {
   }
 }
 
+const readerHandler: HandlerDefinition = {
+  canHandle: [selectors.reader],
+  handle: (msg, { handleCardInfo }, __)  => {
+    return handleCardInfo && handleCardInfo(msg.card)
+  }
+}
+
 // TODO
 // const newReaderHandler: HandlerDefinition = {
 // }
@@ -50,7 +57,7 @@ export class Aa2Module {
     | undefined
 
   private queuedOperations: Array<CommandDefinition & {callbacks: {resolve: Function, reject: Function}}> = []
-  private handlers: HandlerDefinition[] = [insertCardHandler]
+  private handlers: HandlerDefinition[] = [insertCardHandler, readerHandler]
   private eventHandlers: Partial<EventHandlers> = {}
 
   public isInitialized = false
@@ -83,6 +90,10 @@ export class Aa2Module {
   // TODO Change to controllerFunctions?
   public setHandlers(eventHandlers: Partial<EventHandlers>) {
     this.eventHandlers = { ...this.eventHandlers, ...eventHandlers }
+  }
+
+  public resetHandlers() {
+    this.eventHandlers = {}
   }
 
   public async initAa2Sdk() {
