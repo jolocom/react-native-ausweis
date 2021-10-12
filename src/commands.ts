@@ -19,7 +19,8 @@ export interface EventHandlers {
   handleCanRequest: (cardInfo: any) => void
   handlePukRequest: (cardInfo: any) => void
   handleCardRequest: () => void
-  handleCardInfo: () => void
+  handleCardInfo: (cardInfo: any) => void
+  handleAuthResult: (url: string) => void
 }
 
 export type CommandDefinition = {
@@ -99,7 +100,7 @@ export const enterPukCmd = (puk: number): CommandDefinition => {
       value: puk.toString(),
     },
     handler: {
-      canHandle: [selectors.enterPinMsg, enterPukFilter],
+      canHandle: [selectors.enterPinMsg,  selectors.enterPukMsg],
       handle: (message, eventHandlers, { reject, resolve }) => {
         const { handlePukRequest, handlePinRequest } = eventHandlers
 
@@ -125,7 +126,7 @@ export const enterCanCmd = (can: number): CommandDefinition => {
       value: can.toString(),
     },
     handler: {
-      canHandle: [selectors.enterPinMsg, enterCanFilter],
+      canHandle: [selectors.enterPinMsg, selectors.enterCanMsg],
       handle: (message, eventHandlers, { resolve, reject }) => {
         const { handleCanRequest, handlePinRequest } = eventHandlers
 
@@ -153,17 +154,18 @@ export const enterPinCmd = (pin: number): CommandDefinition => {
     handler: {
       canHandle: [
         selectors.enterPinMsg,
-        enterCanFilter,
-        enterPukFilter,
+        selectors.enterCanMsg,
+        selectors.enterPukMsg,
         selectors.authMsg,
       ],
       handle: (message, eventHandlers, { resolve, reject }) => {
-        const { handleCanRequest, handlePinRequest, handlePukRequest } =
+        const { handleCanRequest, handleAuthResult, handlePinRequest, handlePukRequest } =
           eventHandlers
 
         switch (message.msg) {
           case "AUTH":
             if (message.url) {
+              handleAuthResult && handleAuthResult(message.url)
               return resolve(message)
             }
             break
@@ -184,18 +186,31 @@ export const enterPinCmd = (pin: number): CommandDefinition => {
   }
 }
 
-const enterCanFilter = (message: Message) => message.msg === "ENTER_CAN"
-const enterPukFilter = (message: Message) => message.msg === "ENTER_PUK"
-
 export const acceptAuthReqCmd = (): CommandDefinition => {
   return {
     command: {
       cmd: "ACCEPT",
     },
     handler: {
-      canHandle: [selectors.insertCardMsg],
-      handle: (_, { handleCardRequest }) =>
-        handleCardRequest && handleCardRequest(),
+      canHandle: [selectors.insertCardMsg, selectors.enterPinMsg, selectors.enterCanMsg, selectors.enterPukMsg],
+      handle: (message, { handleCardRequest, handlePinRequest, handlePukRequest, handleCanRequest }, {resolve, reject}) => {
+        switch(message.msg) {
+            case 'INSERT_CARD':
+              handleCardRequest && handleCardRequest()
+              return 
+            case "ENTER_PIN":
+              handlePinRequest && handlePinRequest(message.reader?.card)
+              return resolve(message)
+            case "ENTER_PUK":
+              handlePukRequest && handlePukRequest(message.reader?.card)
+              return resolve(message)
+            case "ENTER_CAN":
+              handleCanRequest && handleCanRequest(message.reader?.card)
+              return resolve(message)
+            default:
+              return reject(new Error("Unknown message type"))
+        }
+      }
     },
   }
 }

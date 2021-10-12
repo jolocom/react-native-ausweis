@@ -8,6 +8,9 @@ export const selectors = {
   accessRightsMsg: (message: Message) => message.msg === "ACCESS_RIGHTS",
   insertCardMsg: (message: Message) => message.msg === "INSERT_CARD",
   enterPinMsg: (message: Message) => message.msg === "ENTER_PIN",
+  enterPukMsg: (message: Message) => message.msg === "ENTER_PUK",
+  enterCanMsg: (message: Message) => message.msg === "ENTER_CAN",
   apiLvlMsg: (message: Message) => message.msg === "API_LEVEL",
   getCertificate: (message: Message) => message.msg === "CERTIFICATE",
+  reader: (message: Message) => message.msg === "READER",
 }
