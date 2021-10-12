@@ -186,13 +186,19 @@ export class Aa2Module {
   }
 
   private onMessage(message: Message) {
+    // FIXME: background handlers can't be called without a "current operation"
+    const placeholderCallbacks = {
+      resolve: () => undefined,
+      reject: () => undefined     
+    }
+
     const { handle } =
       this.handlers.find(({ canHandle }) =>
         canHandle.some((check) => check(message))
       ) || {}
 
     if (handle) {
-      return handle(message, this.eventHandlers, this.currentOperation.callbacks)
+      return handle(message, this.eventHandlers, this.currentOperation ? this.currentOperation.callbacks : placeholderCallbacks)
     }
 
     if (!this.currentOperation) {
