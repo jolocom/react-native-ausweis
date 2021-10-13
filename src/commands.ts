@@ -24,7 +24,7 @@ import {
   InsertCardMessage,
 } from './messageTypes'
 import { selectors } from './responseFilters'
-import { AccessRightsFields } from './types'
+import { AccessRightsFields, ScannerConfig } from './types'
 
 export const initSdkCmd = (callback: Handler): CommandDefinition => ({
   command: { cmd: 'INIT' },
@@ -46,6 +46,7 @@ export const getInfoCmd = (): GetInfoCommand<InfoMessage> => {
 
 export const runAuthCmd = (
   tcTokenURL: string,
+  config?: ScannerConfig,
 ): RunAuthCommand<AccessRightsMessage | AuthMessage> => {
   return {
     command: {
@@ -54,10 +55,14 @@ export const runAuthCmd = (
       handleInterrupt: false,
       messages: {
         sessionStarted:
+          config.sessionStarted ??
           "Please place your ID card on the top of the device's back side.",
-        sessionFailed: 'Scanning process failed.',
-        sessionSucceeded: 'Scanning process has been finished successfully.',
-        sessionInProgress: 'Scanning process is in progress.',
+        sessionFailed: config.sessionFailed ?? 'Scanning process failed.',
+        sessionSucceeded:
+          config.sessionSucceeded ??
+          'Scanning process has been finished successfully.',
+        sessionInProgress:
+          config.sessionInProgress ?? 'Scanning process is in progress.',
       },
     },
     handler: {
@@ -74,7 +79,9 @@ export const runAuthCmd = (
   }
 }
 
-export const changePinCmd = (): ChangePinCommand<
+export const changePinCmd = (
+  config?: ScannerConfig,
+): ChangePinCommand<
   BadStateMessage | EnterPinMessage | EnterPukMessage | EnterCanMessage
 > => {
   return {
@@ -83,10 +90,14 @@ export const changePinCmd = (): ChangePinCommand<
       handleInterrupt: false,
       messages: {
         sessionStarted:
+          config.sessionStarted ??
           "Please place your ID card on the top of the device's back side.",
-        sessionFailed: 'Scanning process failed.',
-        sessionSucceeded: 'Scanning process has been finished successfully.',
-        sessionInProgress: 'Scanning process is in progress.',
+        sessionFailed: config.sessionFailed ?? 'Scanning process failed.',
+        sessionSucceeded:
+          config.sessionSucceeded ??
+          'Scanning process has been finished successfully.',
+        sessionInProgress:
+          config.sessionInProgress ?? 'Scanning process is in progress.',
       },
     },
     handler: {

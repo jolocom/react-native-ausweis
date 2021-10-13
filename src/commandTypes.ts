@@ -1,5 +1,5 @@
 import { Message } from './messageTypes'
-import { AccessRightsFields, CardInfo } from './types'
+import { AccessRightsFields, CardInfo, ScannerConfig } from './types'
 
 export interface EventHandlers {
   handlePinRequest: (cardInfo: CardInfo) => void
@@ -31,13 +31,6 @@ export interface GetInfoCommand<T extends Message>
   command: {
     cmd: 'GET_INFO'
   }
-}
-
-export interface ScannerConfig {
-  sessionStarted: string
-  sessionFailed: string
-  sessionSucceeded: string
-  sessionInProgress: string
 }
 
 export interface RunAuthCommand<T extends Message>

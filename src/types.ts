@@ -21,6 +21,13 @@ export type CardInfo = {
   retryCounter: number
 }
 
+export interface ScannerConfig {
+  sessionStarted: string
+  sessionFailed: string
+  sessionSucceeded: string
+  sessionInProgress: string
+}
+
 export enum AccessRightsFields {
   Address = 'Address',
   BirthName = 'BirthName',
