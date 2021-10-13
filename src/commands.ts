@@ -62,7 +62,10 @@ export const runAuthCmd = (
     },
     handler: {
       canHandle: [selectors.accessRightsMsg, selectors.authMsg],
-      handle: (message, _, { resolve }) => {
+      handle: (message, _, { resolve, reject }) => {
+        if (message.msg === 'AUTH' && message.error) {
+          return reject(new Error(message.error))
+        }
         if (message.msg === 'ACCESS_RIGHTS') {
           return resolve(message)
         }
