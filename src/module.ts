@@ -11,11 +11,11 @@ import {
   EventHandlers,
   enterCanCmd,
   enterPukCmd,
-  setAccessRights
-} from "./commands"
-import { SdkNotInitializedError } from "./errors"
-import { selectors } from "./responseFilters"
-import { Filter, Message, Events } from "./types"
+  setAccessRights,
+} from './commands'
+import { SdkNotInitializedError } from './errors'
+import { selectors } from './responseFilters'
+import { Filter, Message, Events } from './types'
 
 const delay = async (delay: number) => {
   return new Promise((resolve) => setTimeout(resolve, delay))
@@ -30,14 +30,14 @@ const insertCardHandler: HandlerDefinition = {
   handle: (_, { handleCardRequest }, __) => {
     console.log(handleCardRequest)
     return handleCardRequest && handleCardRequest()
-  }
+  },
 }
 
 const readerHandler: HandlerDefinition = {
   canHandle: [selectors.reader],
-  handle: (msg, { handleCardInfo }, __)  => {
+  handle: (msg, { handleCardInfo }, __) => {
     return handleCardInfo && handleCardInfo(msg.card)
-  }
+  },
 }
 
 // TODO
@@ -56,7 +56,9 @@ export class Aa2Module {
       })
     | undefined
 
-  private queuedOperations: Array<CommandDefinition & {callbacks: {resolve: Function, reject: Function}}> = []
+  private queuedOperations: Array<
+    CommandDefinition & { callbacks: { resolve: Function; reject: Function } }
+  > = []
   private handlers: HandlerDefinition[] = [insertCardHandler, readerHandler]
   private eventHandlers: Partial<EventHandlers> = {}
 
@@ -66,7 +68,7 @@ export class Aa2Module {
     this.nativeAa2Module = aa2Implementation
 
     eventEmitter.addListener(Events.sdkInitialized, () =>
-      this.onMessage({ msg: "INIT" })
+      this.onMessage({ msg: 'INIT' }),
     )
 
     eventEmitter.addListener(Events.message, (response: string) => {
@@ -120,9 +122,7 @@ export class Aa2Module {
    */
 
   public async getInfo() {
-    return this.sendCmd(
-      getInfoCmd()
-    )
+    return this.sendCmd(getInfoCmd())
   }
 
   /**
@@ -130,14 +130,12 @@ export class Aa2Module {
    */
 
   public async processRequest(tcTokenUrl: string) {
-    return this.sendCmd(
-      runAuthCmd(tcTokenUrl)
-    )
+    return this.sendCmd(runAuthCmd(tcTokenUrl))
   }
 
   private rejectCurrentOperation(errorMessage: string) {
     if (!this.currentOperation) {
-      throw new Error("TODO")
+      throw new Error('TODO')
     }
 
     this.currentOperation.callbacks.reject(new Error(errorMessage))
@@ -179,7 +177,11 @@ export class Aa2Module {
         }
         this.nativeAa2Module.sendCMD(JSON.stringify(command))
       } else {
-        this.queuedOperations.push({ command, handler, callbacks: { resolve, reject} })
+        this.queuedOperations.push({
+          command,
+          handler,
+          callbacks: { resolve, reject },
+        })
         return
       }
     })
@@ -189,16 +191,22 @@ export class Aa2Module {
     // FIXME: background handlers can't be called without a "current operation"
     const placeholderCallbacks = {
       resolve: () => undefined,
-      reject: () => undefined     
+      reject: () => undefined,
     }
 
     const { handle } =
       this.handlers.find(({ canHandle }) =>
-        canHandle.some((check) => check(message))
+        canHandle.some((check) => check(message)),
       ) || {}
 
     if (handle) {
-      return handle(message, this.eventHandlers, this.currentOperation ? this.currentOperation.callbacks : placeholderCallbacks)
+      return handle(
+        message,
+        this.eventHandlers,
+        this.currentOperation
+          ? this.currentOperation.callbacks
+          : placeholderCallbacks,
+      )
     }
 
     if (!this.currentOperation) {
@@ -212,7 +220,6 @@ export class Aa2Module {
       return handler.handle(message, this.eventHandlers, callbacks)
     }
 
-
     this.unprocessedMessages.push(message)
   }
 
@@ -221,7 +228,9 @@ export class Aa2Module {
 
     if (nextCommand) {
       this.queuedOperations = commandQueue
-      return this.sendCmd(nextCommand).then(v => nextCommand.callbacks.resolve(v)).catch(e => nextCommand.callbacks.reject(e))
+      return this.sendCmd(nextCommand)
+        .then((v) => nextCommand.callbacks.resolve(v))
+        .catch((e) => nextCommand.callbacks.reject(e))
     }
   }
 
