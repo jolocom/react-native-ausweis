@@ -12,6 +12,8 @@ export interface InitMessage extends Message {
 
 export interface ApiLevelMessage extends Message {
   msg: 'API_LEVEL'
+  available: number[]
+  current: number
 }
 
 export interface BadStateMessage extends Message {
