@@ -16,8 +16,12 @@ import {
   HandlerDefinition,
 } from './commandTypes'
 import { SdkNotInitializedError } from './errors'
-import { InsertCardMessage, Message, ReaderMessage } from './messageTypes'
-import { selectors } from './responseFilters'
+import {
+  EnterPinMessage,
+  InsertCardMessage,
+  Message,
+  ReaderMessage,
+} from './messageTypes'
 import { Filter, Events, AccessRightsFields } from './types'
 
 const delay = async (delay: number) => {
@@ -29,14 +33,14 @@ interface Emitter {
 }
 
 const insertCardHandler: HandlerDefinition<InsertCardMessage> = {
-  canHandle: [selectors.insertCardMsg],
+  canHandle: ['INSERT_CARD'],
   handle: (_, { handleCardRequest }, __) => {
     return handleCardRequest && handleCardRequest()
   },
 }
 
 const readerHandler: HandlerDefinition<ReaderMessage> = {
-  canHandle: [selectors.reader],
+  canHandle: ['READER'],
   handle: (msg, { handleCardInfo }, __) => {
     return handleCardInfo && handleCardInfo(msg.card)
   },
@@ -197,7 +201,7 @@ export class Aa2Module {
 
     const { handle } =
       this.handlers.find(({ canHandle }) =>
-        canHandle.some((check) => check(message)),
+        canHandle.some((msg) => msg === message.msg),
       ) || {}
 
     if (handle) {
@@ -217,7 +221,7 @@ export class Aa2Module {
 
     const { handler, callbacks } = this.currentOperation
 
-    if (handler.canHandle.some((f) => f(message))) {
+    if (handler.canHandle.some((msg) => msg === message.msg)) {
       return handler.handle(message, this.eventHandlers, callbacks)
     }
 
@@ -253,7 +257,9 @@ export class Aa2Module {
   }
 
   public async checkIfCardWasRead() {
-    return this.waitTillCondition(selectors.enterPinMsg)
+    return this.waitTillCondition(
+      (message: EnterPinMessage) => message.msg === 'ENTER_PIN',
+    )
   }
 
   // TODO Make sure 5 / 6 digits

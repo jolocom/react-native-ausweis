@@ -17,13 +17,19 @@ export type Handler<T extends Message = Message> = (
 ) => T | void
 
 export type HandlerDefinition<T extends Message> = {
-  canHandle: Array<(message: T) => boolean>
+  canHandle: Array<T['msg']>
   handle: Handler<T>
 }
 
 export interface CommandDefinition<T extends Message = Message> {
   command: { cmd: string; [x: string]: any }
   handler: HandlerDefinition<T>
+}
+
+export interface InitCommand<T extends Message> extends CommandDefinition<T> {
+  command: {
+    cmd: 'INIT'
+  }
 }
 
 export interface GetInfoCommand<T extends Message>

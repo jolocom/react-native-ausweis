@@ -2,13 +2,13 @@ import {
   AcceptCommand,
   CancelCommand,
   ChangePinCommand,
-  CommandDefinition,
   EnterCanCommand,
   EnterPinCommand,
   EnterPukCommand,
   GetCertificateCommand,
   GetInfoCommand,
   Handler,
+  InitCommand,
   RunAuthCommand,
   SetAccessRightsCommand,
 } from './commandTypes'
@@ -21,15 +21,17 @@ import {
   EnterPinMessage,
   EnterPukMessage,
   InfoMessage,
+  InitMessage,
   InsertCardMessage,
 } from './messageTypes'
-import { selectors } from './responseFilters'
 import { AccessRightsFields, ScannerConfig } from './types'
 
-export const initSdkCmd = (callback: Handler): CommandDefinition => ({
+export const initSdkCmd = (
+  callback: Handler<InitMessage>,
+): InitCommand<InitMessage> => ({
   command: { cmd: 'INIT' },
   handler: {
-    canHandle: [selectors.initMsg],
+    canHandle: ['INIT'],
     handle: callback,
   },
 })
@@ -38,7 +40,7 @@ export const getInfoCmd = (): GetInfoCommand<InfoMessage> => {
   return {
     command: { cmd: 'GET_INFO' },
     handler: {
-      canHandle: [selectors.infoMsg],
+      canHandle: ['INFO'],
       handle: (message, _, { resolve }) => resolve(message),
     },
   }
@@ -66,7 +68,7 @@ export const runAuthCmd = (
       },
     },
     handler: {
-      canHandle: [selectors.accessRightsMsg, selectors.authMsg],
+      canHandle: ['ACCESS_RIGHTS', 'AUTH'],
       handle: (message, _, { resolve, reject }) => {
         if (message.msg === 'AUTH' && message.error) {
           return reject(new Error(message.error))
@@ -101,12 +103,7 @@ export const changePinCmd = (
       },
     },
     handler: {
-      canHandle: [
-        selectors.badState,
-        selectors.enterPinMsg,
-        selectors.enterPukMsg,
-        selectors.enterCanMsg,
-      ],
+      canHandle: ['BAD_STATE', 'ENTER_PIN', 'ENTER_PUK', 'ENTER_CAN'],
       handle: (
         message,
         { handlePinRequest, handlePukRequest, handleCanRequest },
@@ -139,11 +136,7 @@ export const enterPukCmd = (
       value: puk.toString(),
     },
     handler: {
-      canHandle: [
-        selectors.enterPinMsg,
-        selectors.enterPukMsg,
-        selectors.badState,
-      ],
+      canHandle: ['BAD_STATE', 'ENTER_PIN', 'ENTER_PUK'],
       handle: (message, eventHandlers, { reject, resolve }) => {
         const { handlePukRequest, handlePinRequest } = eventHandlers
         switch (message.msg) {
@@ -170,11 +163,7 @@ export const enterCanCmd = (
       value: can.toString(),
     },
     handler: {
-      canHandle: [
-        selectors.badState,
-        selectors.enterPinMsg,
-        selectors.enterCanMsg,
-      ],
+      canHandle: ['BAD_STATE', 'ENTER_PIN', 'ENTER_CAN'],
       handle: (message, eventHandlers, { resolve, reject }) => {
         const { handleCanRequest, handlePinRequest } = eventHandlers
 
@@ -204,12 +193,7 @@ export const enterPinCmd = (
       value: pin.toString(),
     },
     handler: {
-      canHandle: [
-        selectors.enterPinMsg,
-        selectors.enterCanMsg,
-        selectors.enterPukMsg,
-        selectors.authMsg,
-      ],
+      canHandle: ['ENTER_PUK', 'ENTER_PIN', 'ENTER_CAN', 'AUTH'],
       handle: (message, eventHandlers, { resolve, reject }) => {
         const {
           handleCanRequest,
@@ -249,12 +233,7 @@ export const acceptAuthReqCmd = (): AcceptCommand<
       cmd: 'ACCEPT',
     },
     handler: {
-      canHandle: [
-        selectors.insertCardMsg,
-        selectors.enterPinMsg,
-        selectors.enterCanMsg,
-        selectors.enterPukMsg,
-      ],
+      canHandle: ['INSERT_CARD', 'ENTER_PIN', 'ENTER_CAN', 'ENTER_PUK'],
       handle: (
         message,
         {
@@ -290,7 +269,7 @@ export const getCertificate = (): GetCertificateCommand<CertificateMessage> => {
   return {
     command: { cmd: 'GET_CERTIFICATE' },
     handler: {
-      canHandle: [selectors.getCertificate],
+      canHandle: ['CERTIFICATE'],
       handle: (message, _, { resolve }) => resolve(message),
     },
   }
@@ -300,7 +279,7 @@ export const cancelFlow = (): CancelCommand<BadStateMessage | AuthMessage> => {
   return {
     command: { cmd: 'CANCEL' },
     handler: {
-      canHandle: [selectors.authMsg, selectors.badState],
+      canHandle: ['AUTH', 'BAD_STATE'],
       handle: (message, _, { resolve, reject }) => {
         switch (message.msg) {
           case 'AUTH':
@@ -321,7 +300,7 @@ export const setAccessRights = (
   return {
     command: { cmd: 'SET_ACCESS_RIGHTS', chat: optionalFields },
     handler: {
-      canHandle: [selectors.accessRightsMsg],
+      canHandle: ['ACCESS_RIGHTS'],
       handle: (message, _, { resolve, reject }) => {
         switch (message.msg) {
           case 'ACCESS_RIGHTS':
