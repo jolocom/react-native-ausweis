@@ -179,10 +179,20 @@ export class Aa2Module {
         }
         this.nativeAa2Module.sendCMD(JSON.stringify(command))
       } else {
+        if(command.cmd === 'CANCEL') {
+          this.abortTheFlow(command)
+          return
+        }
         this.queuedOperations.push({ command, handler, callbacks: { resolve, reject} })
         return
       }
     })
+  }
+
+  private abortTheFlow(command: CommandDefinition['command']) {
+    this.nativeAa2Module.sendCMD(JSON.stringify(command))
+    this.currentOperation = undefined
+    this.unprocessedMessages = []
   }
 
   private onMessage(message: Message) {
