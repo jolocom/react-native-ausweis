@@ -192,9 +192,13 @@ export const acceptAuthReqCmd = (): CommandDefinition => {
       cmd: "ACCEPT",
     },
     handler: {
-      canHandle: [selectors.insertCardMsg, selectors.enterPinMsg, selectors.enterCanMsg, selectors.enterPukMsg],
-      handle: (message, { handleCardRequest, handlePinRequest, handlePukRequest, handleCanRequest }, {resolve, reject}) => {
+      canHandle: [selectors.insertCardMsg, selectors.enterPinMsg, selectors.enterCanMsg, selectors.enterPukMsg, selectors.authMsg],
+      handle: (message, { handleCardRequest, handlePinRequest, handlePukRequest, handleCanRequest, handleAuthResult }, {resolve, reject}) => {
         switch(message.msg) {
+            case 'AUTH':
+              // @ts-expect-error
+              handleAuthResult && handleAuthResult()
+              return resolve(message);
             case 'INSERT_CARD':
               handleCardRequest && handleCardRequest()
               return 
