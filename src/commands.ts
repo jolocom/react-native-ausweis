@@ -57,7 +57,7 @@ export const runAuthCmd = (
     command: {
       cmd: Commands.runAuth,
       tcTokenURL,
-      handleInterrupt: false,
+      handleInterrupt: true,
       messages: {
         sessionStarted:
           config?.sessionStarted ??
