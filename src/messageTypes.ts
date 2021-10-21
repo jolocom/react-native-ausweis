@@ -1,28 +1,43 @@
 import { AccessRights, CardInfo } from './types'
 
+export enum Messages {
+  init = 'INIT',
+  apiLevel = 'API_LEVEL',
+  badState = 'BAD_STATE',
+  info = 'INFO',
+  auth = 'AUTH',
+  accessRights = 'ACCESS_RIGHTS',
+  enterPin = 'ENTER_PIN',
+  enterPuk = 'ENTER_PUK',
+  enterCan = 'ENTER_CAN',
+  insertCard = 'INSERT_CARD',
+  certificate = 'CERTIFICATE',
+  reader = 'READER',
+}
+
 export interface Message {
-  msg: string
+  msg: Messages
   error?: string
 }
 
 // NOTE: Is this even a thing?
 export interface InitMessage extends Message {
-  msg: 'INIT'
+  msg: Messages.init
 }
 
 export interface ApiLevelMessage extends Message {
-  msg: 'API_LEVEL'
+  msg: Messages.apiLevel
   available: number[]
   current: number
 }
 
 export interface BadStateMessage extends Message {
-  msg: 'BAD_STATE'
+  msg: Messages.badState
   error: string
 }
 
 export interface InfoMessage extends Message {
-  msg: 'INFO'
+  msg: Messages.info
   VersionInfo: {
     Name: string
     'Implementation-Title': string
@@ -36,12 +51,12 @@ export interface InfoMessage extends Message {
 
 //TODO: add proper type
 export interface AuthMessage extends Message {
-  msg: 'AUTH'
+  msg: Messages.auth
   url?: string
 }
 
 export interface AccessRightsMessage extends Message {
-  msg: 'ACCESS_RIGHTS'
+  msg: Messages.accessRights
   aux: {
     ageVerificationDate?: string
     requiredAge?: string
@@ -61,22 +76,22 @@ interface ReaderInfo {
 }
 
 export interface EnterPinMessage extends Message {
-  msg: 'ENTER_PIN'
+  msg: Messages.enterPin
   reader: ReaderInfo
 }
 
 export interface EnterPukMessage extends Message {
-  msg: 'ENTER_PUK'
+  msg: Messages.enterPuk
   reader: ReaderInfo
 }
 
 export interface EnterCanMessage extends Message {
-  msg: 'ENTER_CAN'
+  msg: Messages.enterCan
   reader: ReaderInfo
 }
 
 export interface InsertCardMessage extends Message {
-  msg: 'INSERT_CARD'
+  msg: Messages.insertCard
 }
 
 interface CertificateDescription {
@@ -94,13 +109,13 @@ interface CertificateValidity {
 }
 
 export interface CertificateMessage extends Message {
-  msg: 'CERTIFICATE'
+  msg: Messages.certificate
   description: CertificateDescription
   validity: CertificateValidity
 }
 
 export interface ReaderMessage extends Message {
-  msg: 'READER'
+  msg: Messages.reader
   attached: boolean
   keypad: boolean
   card: CardInfo

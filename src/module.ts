@@ -16,8 +16,15 @@ import {
   HandlerDefinition,
 } from './commandTypes'
 import { SdkNotInitializedError } from './errors'
-import { InsertCardMessage, Message, ReaderMessage } from './messageTypes'
-import { selectors } from './responseFilters'
+import {
+  EnterCanMessage,
+  EnterPinMessage,
+  EnterPukMessage,
+  InsertCardMessage,
+  Message,
+  Messages,
+  ReaderMessage,
+} from './messageTypes'
 import { Filter, Events, AccessRightsFields } from './types'
 
 const delay = async (delay: number) => {
@@ -29,14 +36,14 @@ interface Emitter {
 }
 
 const insertCardHandler: HandlerDefinition<InsertCardMessage> = {
-  canHandle: [selectors.insertCardMsg],
+  canHandle: [Messages.insertCard],
   handle: (_, { handleCardRequest }, __) => {
     return handleCardRequest && handleCardRequest()
   },
 }
 
 const readerHandler: HandlerDefinition<ReaderMessage> = {
-  canHandle: [selectors.reader],
+  canHandle: [Messages.reader],
   handle: (msg, { handleCardInfo }, __) => {
     return handleCardInfo && handleCardInfo(msg.card)
   },
@@ -69,7 +76,7 @@ export class Aa2Module {
     this.nativeAa2Module = aa2Implementation
 
     eventEmitter.addListener(Events.sdkInitialized, () =>
-      this.onMessage({ msg: 'INIT' }),
+      this.onMessage({ msg: Messages.init }),
     )
 
     eventEmitter.addListener(Events.message, (response: string) => {
@@ -197,7 +204,7 @@ export class Aa2Module {
 
     const { handle } =
       this.handlers.find(({ canHandle }) =>
-        canHandle.some((check) => check(message)),
+        canHandle.some((msg) => msg === message.msg),
       ) || {}
 
     if (handle) {
@@ -217,7 +224,7 @@ export class Aa2Module {
 
     const { handler, callbacks } = this.currentOperation
 
-    if (handler.canHandle.some((f) => f(message))) {
+    if (handler.canHandle.some((msg) => msg === message.msg)) {
       return handler.handle(message, this.eventHandlers, callbacks)
     }
 
@@ -253,7 +260,12 @@ export class Aa2Module {
   }
 
   public async checkIfCardWasRead() {
-    return this.waitTillCondition(selectors.enterPinMsg)
+    return this.waitTillCondition(
+      (message: EnterPinMessage | EnterPukMessage | EnterCanMessage) =>
+        [Messages.enterPin, Messages.enterPuk, Messages.enterCan].includes(
+          message.msg,
+        ),
+    )
   }
 
   // TODO Make sure 5 / 6 digits
