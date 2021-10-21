@@ -17,9 +17,12 @@ import {
 } from './commandTypes'
 import { SdkNotInitializedError } from './errors'
 import {
+  EnterCanMessage,
   EnterPinMessage,
+  EnterPukMessage,
   InsertCardMessage,
   Message,
+  Messages,
   ReaderMessage,
 } from './messageTypes'
 import { Filter, Events, AccessRightsFields } from './types'
@@ -33,14 +36,14 @@ interface Emitter {
 }
 
 const insertCardHandler: HandlerDefinition<InsertCardMessage> = {
-  canHandle: ['INSERT_CARD'],
+  canHandle: [Messages.insertCard],
   handle: (_, { handleCardRequest }, __) => {
     return handleCardRequest && handleCardRequest()
   },
 }
 
 const readerHandler: HandlerDefinition<ReaderMessage> = {
-  canHandle: ['READER'],
+  canHandle: [Messages.reader],
   handle: (msg, { handleCardInfo }, __) => {
     return handleCardInfo && handleCardInfo(msg.card)
   },
@@ -73,7 +76,7 @@ export class Aa2Module {
     this.nativeAa2Module = aa2Implementation
 
     eventEmitter.addListener(Events.sdkInitialized, () =>
-      this.onMessage({ msg: 'INIT' }),
+      this.onMessage({ msg: Messages.init }),
     )
 
     eventEmitter.addListener(Events.message, (response: string) => {
@@ -258,7 +261,10 @@ export class Aa2Module {
 
   public async checkIfCardWasRead() {
     return this.waitTillCondition(
-      (message: EnterPinMessage) => message.msg === 'ENTER_PIN',
+      (message: EnterPinMessage | EnterPukMessage | EnterCanMessage) =>
+        [Messages.enterPin, Messages.enterPuk, Messages.enterCan].includes(
+          message.msg,
+        ),
     )
   }
 

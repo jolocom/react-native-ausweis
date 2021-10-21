@@ -23,15 +23,16 @@ import {
   InfoMessage,
   InitMessage,
   InsertCardMessage,
+  Messages,
 } from './messageTypes'
 import { AccessRightsFields, ScannerConfig } from './types'
 
 export const initSdkCmd = (
   callback: Handler<InitMessage>,
 ): InitCommand<InitMessage> => ({
-  command: { cmd: 'INIT' },
+  command: { cmd: Messages.init },
   handler: {
-    canHandle: ['INIT'],
+    canHandle: [Messages.init],
     handle: callback,
   },
 })
@@ -40,7 +41,7 @@ export const getInfoCmd = (): GetInfoCommand<InfoMessage> => {
   return {
     command: { cmd: 'GET_INFO' },
     handler: {
-      canHandle: ['INFO'],
+      canHandle: [Messages.info],
       handle: (message, _, { resolve }) => resolve(message),
     },
   }
@@ -68,12 +69,12 @@ export const runAuthCmd = (
       },
     },
     handler: {
-      canHandle: ['ACCESS_RIGHTS', 'AUTH'],
+      canHandle: [Messages.accessRights, Messages.auth],
       handle: (message, _, { resolve, reject }) => {
-        if (message.msg === 'AUTH' && message.error) {
+        if (message.msg === Messages.auth && message.error) {
           return reject(new Error(message.error))
         }
-        if (message.msg === 'ACCESS_RIGHTS') {
+        if (message.msg === Messages.accessRights) {
           return resolve(message)
         }
       },
@@ -103,20 +104,25 @@ export const changePinCmd = (
       },
     },
     handler: {
-      canHandle: ['BAD_STATE', 'ENTER_PIN', 'ENTER_PUK', 'ENTER_CAN'],
+      canHandle: [
+        Messages.badState,
+        Messages.enterPin,
+        Messages.enterPuk,
+        Messages.enterCan,
+      ],
       handle: (
         message,
         { handlePinRequest, handlePukRequest, handleCanRequest },
         { resolve, reject },
       ) => {
         switch (message.msg) {
-          case 'ENTER_PIN':
+          case Messages.enterPin:
             handlePinRequest && handlePinRequest(message.reader.card)
             return resolve(message)
-          case 'ENTER_PUK':
+          case Messages.enterPuk:
             handlePukRequest && handlePukRequest(message.reader.card)
             return resolve(message)
-          case 'ENTER_CAN':
+          case Messages.enterCan:
             handleCanRequest && handleCanRequest(message.reader.card)
             return resolve(message)
           default:
@@ -136,14 +142,14 @@ export const enterPukCmd = (
       value: puk.toString(),
     },
     handler: {
-      canHandle: ['BAD_STATE', 'ENTER_PIN', 'ENTER_PUK'],
+      canHandle: [Messages.badState, Messages.enterPin, Messages.enterPuk],
       handle: (message, eventHandlers, { reject, resolve }) => {
         const { handlePukRequest, handlePinRequest } = eventHandlers
         switch (message.msg) {
-          case 'ENTER_PIN':
+          case Messages.enterPin:
             handlePinRequest && handlePinRequest(message.reader.card)
             return resolve(message)
-          case 'ENTER_PUK':
+          case Messages.enterPuk:
             handlePukRequest && handlePukRequest(message.reader.card)
             return resolve(message)
           default:
@@ -163,15 +169,15 @@ export const enterCanCmd = (
       value: can.toString(),
     },
     handler: {
-      canHandle: ['BAD_STATE', 'ENTER_PIN', 'ENTER_CAN'],
+      canHandle: [Messages.enterPin, Messages.enterCan],
       handle: (message, eventHandlers, { resolve, reject }) => {
         const { handleCanRequest, handlePinRequest } = eventHandlers
 
         switch (message.msg) {
-          case 'ENTER_PIN':
+          case Messages.enterPin:
             handlePinRequest && handlePinRequest(message.reader.card)
             return resolve(message)
-          case 'ENTER_CAN':
+          case Messages.enterCan:
             handleCanRequest && handleCanRequest(message.reader.card)
             return resolve(message)
           default:
@@ -193,7 +199,12 @@ export const enterPinCmd = (
       value: pin.toString(),
     },
     handler: {
-      canHandle: ['ENTER_PUK', 'ENTER_PIN', 'ENTER_CAN', 'AUTH'],
+      canHandle: [
+        Messages.enterPuk,
+        Messages.enterPin,
+        Messages.enterCan,
+        Messages.auth,
+      ],
       handle: (message, eventHandlers, { resolve, reject }) => {
         const {
           handleCanRequest,
@@ -203,18 +214,18 @@ export const enterPinCmd = (
         } = eventHandlers
 
         switch (message.msg) {
-          case 'AUTH':
+          case Messages.auth:
             if (message.url) {
               handleAuthResult && handleAuthResult(message.url)
               return resolve(message)
             } else return reject(message)
-          case 'ENTER_PIN':
+          case Messages.enterPin:
             handlePinRequest && handlePinRequest(message.reader?.card)
             return resolve(message)
-          case 'ENTER_PUK':
+          case Messages.enterPuk:
             handlePukRequest && handlePukRequest(message.reader?.card)
             return resolve(message)
-          case 'ENTER_CAN':
+          case Messages.enterCan:
             handleCanRequest && handleCanRequest(message.reader?.card)
             return resolve(message)
           default:
@@ -233,7 +244,12 @@ export const acceptAuthReqCmd = (): AcceptCommand<
       cmd: 'ACCEPT',
     },
     handler: {
-      canHandle: ['INSERT_CARD', 'ENTER_PIN', 'ENTER_CAN', 'ENTER_PUK'],
+      canHandle: [
+        Messages.insertCard,
+        Messages.enterPin,
+        Messages.enterCan,
+        Messages.enterPuk,
+      ],
       handle: (
         message,
         {
@@ -245,16 +261,16 @@ export const acceptAuthReqCmd = (): AcceptCommand<
         { resolve, reject },
       ) => {
         switch (message.msg) {
-          case 'INSERT_CARD':
+          case Messages.insertCard:
             handleCardRequest && handleCardRequest()
             return
-          case 'ENTER_PIN':
+          case Messages.enterPin:
             handlePinRequest && handlePinRequest(message.reader.card)
             return resolve(message)
-          case 'ENTER_PUK':
+          case Messages.enterPuk:
             handlePukRequest && handlePukRequest(message.reader.card)
             return resolve(message)
-          case 'ENTER_CAN':
+          case Messages.enterCan:
             handleCanRequest && handleCanRequest(message.reader.card)
             return resolve(message)
           default:
@@ -269,7 +285,7 @@ export const getCertificate = (): GetCertificateCommand<CertificateMessage> => {
   return {
     command: { cmd: 'GET_CERTIFICATE' },
     handler: {
-      canHandle: ['CERTIFICATE'],
+      canHandle: [Messages.certificate],
       handle: (message, _, { resolve }) => resolve(message),
     },
   }
@@ -279,12 +295,12 @@ export const cancelFlow = (): CancelCommand<BadStateMessage | AuthMessage> => {
   return {
     command: { cmd: 'CANCEL' },
     handler: {
-      canHandle: ['AUTH', 'BAD_STATE'],
+      canHandle: [Messages.auth, Messages.badState],
       handle: (message, _, { resolve, reject }) => {
         switch (message.msg) {
-          case 'AUTH':
+          case Messages.auth:
             return resolve(message)
-          case 'BAD_STATE':
+          case Messages.badState:
             return reject(message.error)
           default:
             return reject(new Error('Unknown message type'))
@@ -300,12 +316,12 @@ export const setAccessRights = (
   return {
     command: { cmd: 'SET_ACCESS_RIGHTS', chat: optionalFields },
     handler: {
-      canHandle: ['ACCESS_RIGHTS'],
+      canHandle: [Messages.accessRights, Messages.badState],
       handle: (message, _, { resolve, reject }) => {
         switch (message.msg) {
-          case 'ACCESS_RIGHTS':
+          case Messages.accessRights:
             return resolve(message)
-          case 'BAD_STATE':
+          case Messages.badState:
             return reject(message.error)
           default:
             return reject(new Error('Unknown message type'))
