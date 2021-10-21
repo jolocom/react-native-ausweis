@@ -1,5 +1,5 @@
 import { Aa2Module } from "../../src/module"
-import { Message, Events } from "../../src/types"
+import { Events } from "../../src/types"
 import { testWorkflowData } from "../data"
 
 class TestEmitter {

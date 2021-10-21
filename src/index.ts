@@ -3,10 +3,10 @@ import {
   Platform,
   NativeEventEmitter,
   DeviceEventEmitter,
-} from "react-native"
+} from 'react-native'
 
-import { Aa2Module } from "./module"
-import { Events } from "./types"
+import { Aa2Module } from './module'
+import { Events } from './types'
 
 const emitter = Platform.select({
   ios: new NativeEventEmitter(NativeModules.Emitter),
