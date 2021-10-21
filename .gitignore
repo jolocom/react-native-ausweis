@@ -1,3 +1,4 @@
 js
 node_modules
-example/android/build
+android/build
+ios/Aa2Sdk.xcworkspace/

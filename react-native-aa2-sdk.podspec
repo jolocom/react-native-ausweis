@@ -24,8 +24,6 @@ Pod::Spec.new do |s|
   s.requires_arc = true
 
   s.dependency "React"
-  s.vendored_frameworks = 'ios/Frameworks/AusweisApp2.xcframework'
-  # ...
-  # s.dependency "..."
+  s.vendored_frameworks = 'ios/Frameworks/AusweisApp2-SDK-iOS/AusweisApp2.xcframework'
 end
 
