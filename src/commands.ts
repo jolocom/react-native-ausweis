@@ -32,6 +32,7 @@ export const initSdkCmd = (
   callback: Handler<InitMessage>,
 ): InitCommand<InitMessage> => ({
   command: { cmd: Commands.init },
+
   handler: {
     canHandle: [Messages.init],
     handle: callback,
@@ -59,14 +60,14 @@ export const runAuthCmd = (
       handleInterrupt: false,
       messages: {
         sessionStarted:
-          config.sessionStarted ??
+          config?.sessionStarted ??
           "Please place your ID card on the top of the device's back side.",
-        sessionFailed: config.sessionFailed ?? 'Scanning process failed.',
+        sessionFailed: config?.sessionFailed ?? 'Scanning process failed.',
         sessionSucceeded:
-          config.sessionSucceeded ??
+          config?.sessionSucceeded ??
           'Scanning process has been finished successfully.',
         sessionInProgress:
-          config.sessionInProgress ?? 'Scanning process is in progress.',
+          config?.sessionInProgress ?? 'Scanning process is in progress.',
       },
     },
     handler: {
@@ -94,14 +95,14 @@ export const changePinCmd = (
       handleInterrupt: false,
       messages: {
         sessionStarted:
-          config.sessionStarted ??
+          config?.sessionStarted ??
           "Please place your ID card on the top of the device's back side.",
-        sessionFailed: config.sessionFailed ?? 'Scanning process failed.',
+        sessionFailed: config?.sessionFailed ?? 'Scanning process failed.',
         sessionSucceeded:
-          config.sessionSucceeded ??
+          config?.sessionSucceeded ??
           'Scanning process has been finished successfully.',
         sessionInProgress:
-          config.sessionInProgress ?? 'Scanning process is in progress.',
+          config?.sessionInProgress ?? 'Scanning process is in progress.',
       },
     },
     handler: {

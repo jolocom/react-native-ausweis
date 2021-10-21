@@ -24,7 +24,7 @@ export interface EventHandlers {
   handleAuthResult: (url: string) => void
 }
 
-export type Handler<T extends Message = Message> = (
+export type Handler<T extends Message> = (
   message: T,
   eventHandlers: Partial<EventHandlers>,
   callbacks: { resolve: Function; reject: Function },

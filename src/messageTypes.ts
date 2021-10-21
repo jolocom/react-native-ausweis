@@ -68,7 +68,6 @@ export interface AccessRightsMessage extends Message {
   canAllowed?: boolean
 }
 
-//TODO: move outside of here
 interface ReaderInfo {
   name: string
   attached: boolean
