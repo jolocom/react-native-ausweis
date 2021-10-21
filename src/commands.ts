@@ -2,6 +2,7 @@ import {
   AcceptCommand,
   CancelCommand,
   ChangePinCommand,
+  Commands,
   EnterCanCommand,
   EnterPinCommand,
   EnterPukCommand,
@@ -30,7 +31,7 @@ import { AccessRightsFields, ScannerConfig } from './types'
 export const initSdkCmd = (
   callback: Handler<InitMessage>,
 ): InitCommand<InitMessage> => ({
-  command: { cmd: Messages.init },
+  command: { cmd: Commands.init },
   handler: {
     canHandle: [Messages.init],
     handle: callback,
@@ -39,7 +40,7 @@ export const initSdkCmd = (
 
 export const getInfoCmd = (): GetInfoCommand<InfoMessage> => {
   return {
-    command: { cmd: 'GET_INFO' },
+    command: { cmd: Commands.getInfo },
     handler: {
       canHandle: [Messages.info],
       handle: (message, _, { resolve }) => resolve(message),
@@ -53,7 +54,7 @@ export const runAuthCmd = (
 ): RunAuthCommand<AccessRightsMessage | AuthMessage> => {
   return {
     command: {
-      cmd: 'RUN_AUTH',
+      cmd: Commands.runAuth,
       tcTokenURL,
       handleInterrupt: false,
       messages: {
@@ -89,7 +90,7 @@ export const changePinCmd = (
 > => {
   return {
     command: {
-      cmd: 'RUN_CHANGE_PIN',
+      cmd: Commands.runChangePin,
       handleInterrupt: false,
       messages: {
         sessionStarted:
@@ -138,7 +139,7 @@ export const enterPukCmd = (
 ): EnterPukCommand<BadStateMessage | EnterPinMessage | EnterPukMessage> => {
   return {
     command: {
-      cmd: 'SET_PUK',
+      cmd: Commands.setPuk,
       value: puk.toString(),
     },
     handler: {
@@ -165,7 +166,7 @@ export const enterCanCmd = (
 ): EnterCanCommand<BadStateMessage | EnterPinMessage | EnterCanMessage> => {
   return {
     command: {
-      cmd: 'SET_CAN',
+      cmd: Commands.setCan,
       value: can.toString(),
     },
     handler: {
@@ -195,7 +196,7 @@ export const enterPinCmd = (
 > => {
   return {
     command: {
-      cmd: 'SET_PIN',
+      cmd: Commands.setPin,
       value: pin.toString(),
     },
     handler: {
@@ -241,7 +242,7 @@ export const acceptAuthReqCmd = (): AcceptCommand<
 > => {
   return {
     command: {
-      cmd: 'ACCEPT',
+      cmd: Commands.accept,
     },
     handler: {
       canHandle: [
@@ -283,7 +284,7 @@ export const acceptAuthReqCmd = (): AcceptCommand<
 
 export const getCertificate = (): GetCertificateCommand<CertificateMessage> => {
   return {
-    command: { cmd: 'GET_CERTIFICATE' },
+    command: { cmd: Commands.getCertificate },
     handler: {
       canHandle: [Messages.certificate],
       handle: (message, _, { resolve }) => resolve(message),
@@ -293,7 +294,7 @@ export const getCertificate = (): GetCertificateCommand<CertificateMessage> => {
 
 export const cancelFlow = (): CancelCommand<BadStateMessage | AuthMessage> => {
   return {
-    command: { cmd: 'CANCEL' },
+    command: { cmd: Commands.cancel },
     handler: {
       canHandle: [Messages.auth, Messages.badState],
       handle: (message, _, { resolve, reject }) => {
@@ -314,7 +315,7 @@ export const setAccessRights = (
   optionalFields: Array<AccessRightsFields>,
 ): SetAccessRightsCommand<AccessRightsMessage | BadStateMessage> => {
   return {
-    command: { cmd: 'SET_ACCESS_RIGHTS', chat: optionalFields },
+    command: { cmd: Commands.setAccessRights, chat: optionalFields },
     handler: {
       canHandle: [Messages.accessRights, Messages.badState],
       handle: (message, _, { resolve, reject }) => {

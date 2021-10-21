@@ -1,6 +1,20 @@
 import { Message } from './messageTypes'
 import { AccessRightsFields, CardInfo, ScannerConfig } from './types'
 
+export enum Commands {
+  init = 'INIT',
+  getInfo = 'GET_INFO',
+  runAuth = 'RUN_AUTH',
+  runChangePin = 'RUN_CHANGE_PIN',
+  setPuk = 'SET_PUK',
+  setCan = 'SET_CAN',
+  setPin = 'SET_PIN',
+  accept = 'ACCEPT',
+  getCertificate = 'GET_CERTIFICATE',
+  cancel = 'CANCEL',
+  setAccessRights = 'SET_ACCESS_RIGHTS',
+}
+
 export interface EventHandlers {
   handlePinRequest: (cardInfo: CardInfo) => void
   handleCanRequest: (cardInfo: CardInfo) => void
@@ -22,27 +36,27 @@ export type HandlerDefinition<T extends Message> = {
 }
 
 export interface CommandDefinition<T extends Message = Message> {
-  command: { cmd: string; [x: string]: any }
+  command: { cmd: Commands; [x: string]: any }
   handler: HandlerDefinition<T>
 }
 
 export interface InitCommand<T extends Message> extends CommandDefinition<T> {
   command: {
-    cmd: 'INIT'
+    cmd: Commands.init
   }
 }
 
 export interface GetInfoCommand<T extends Message>
   extends CommandDefinition<T> {
   command: {
-    cmd: 'GET_INFO'
+    cmd: Commands.getInfo
   }
 }
 
 export interface RunAuthCommand<T extends Message>
   extends CommandDefinition<T> {
   command: {
-    cmd: 'RUN_AUTH'
+    cmd: Commands.runAuth
     tcTokenURL: string
     handleInterrupt: boolean
     messages: ScannerConfig
@@ -52,7 +66,7 @@ export interface RunAuthCommand<T extends Message>
 export interface ChangePinCommand<T extends Message>
   extends CommandDefinition<T> {
   command: {
-    cmd: 'RUN_CHANGE_PIN'
+    cmd: Commands.runChangePin
     handleInterrupt: boolean
     messages: ScannerConfig
   }
@@ -61,7 +75,7 @@ export interface ChangePinCommand<T extends Message>
 export interface EnterPukCommand<T extends Message>
   extends CommandDefinition<T> {
   command: {
-    cmd: 'SET_PUK'
+    cmd: Commands.setPuk
     value: string
   }
 }
@@ -69,7 +83,7 @@ export interface EnterPukCommand<T extends Message>
 export interface EnterCanCommand<T extends Message>
   extends CommandDefinition<T> {
   command: {
-    cmd: 'SET_CAN'
+    cmd: Commands.setCan
     value: string
   }
 }
@@ -77,34 +91,34 @@ export interface EnterCanCommand<T extends Message>
 export interface EnterPinCommand<T extends Message>
   extends CommandDefinition<T> {
   command: {
-    cmd: 'SET_PIN'
+    cmd: Commands.setPin
     value: string
   }
 }
 
 export interface AcceptCommand<T extends Message> extends CommandDefinition<T> {
   command: {
-    cmd: 'ACCEPT'
+    cmd: Commands.accept
   }
 }
 
 export interface GetCertificateCommand<T extends Message>
   extends CommandDefinition<T> {
   command: {
-    cmd: 'GET_CERTIFICATE'
+    cmd: Commands.getCertificate
   }
 }
 
 export interface CancelCommand<T extends Message> extends CommandDefinition<T> {
   command: {
-    cmd: 'CANCEL'
+    cmd: Commands.cancel
   }
 }
 
 export interface SetAccessRightsCommand<T extends Message>
   extends CommandDefinition<T> {
   command: {
-    cmd: 'SET_ACCESS_RIGHTS'
+    cmd: Commands.setAccessRights
     chat: AccessRightsFields[]
   }
 }
