@@ -1,10 +1,6 @@
-export interface Message {
-  msg: string
-  error?: string
-  [k: string]: any
-}
+import { Message } from './messageTypes'
 
-export type Filter = (messages: Message) => boolean
+export type Filter<T extends Message> = (messages: T) => boolean
 
 export enum Events {
   error = 'onError',
@@ -19,7 +15,49 @@ export type IncorrectPinResponse = {
   triesLeft: number
 }
 
+export type CardInfo = {
+  inoperative: boolean
+  deactivated: boolean
+  retryCounter: number
+}
+
+export interface ScannerConfig {
+  sessionStarted: string
+  sessionFailed: string
+  sessionSucceeded: string
+  sessionInProgress: string
+}
+
+export enum AccessRightsFields {
+  Address = 'Address',
+  BirthName = 'BirthName',
+  FamilyName = 'FamilyName',
+  GivenNames = ' GivenNames',
+  PlaceOfBirth = 'PlaceOfBirth',
+  DateOfBirth = 'DateOfBirth',
+  DoctoralDegree = 'DoctoralDegree',
+  ArtisticName = 'ArtisticName',
+  Pseudonym = 'Pseudonym',
+  ValidUntil = 'ValidUntil',
+  Nationality = 'Nationality',
+  IssuingCountry = 'IssuingCountry',
+  DocumentType = 'DocumentType',
+  ResidencePermitI = 'ResidencePermitI',
+  ResidencePermitII = 'ResidencePermitII',
+  CommunityID = 'CommunityID',
+  AddressVerification = 'AddressVerification',
+  AgeVerification = 'AgeVerification',
+  WriteAddress = 'WriteAddress',
+  WriteCommunityID = 'WriteCommunityID',
+  WriteResidencePermitI = 'WriteResidencePermitI',
+  WriteResidencePermitII = 'WriteResidencePermitII',
+  CanAllowed = 'CanAllowed',
+  PinManagement = 'PinManagement',
+}
+
 export type AccessRights = {
-  required: string[]
-  optional: string[]
+  optional: AccessRightsFields[]
+  required: AccessRightsFields[]
+  // NOTE: contains both the `optional` and `required` fields
+  effective: AccessRightsFields[]
 }
