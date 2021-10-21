@@ -53,7 +53,7 @@ export const runAuthCmd = (
     command: {
       cmd: "RUN_AUTH",
       tcTokenURL,
-      handleInterrupt: false,
+      handleInterrupt: true,
       messages: {
         sessionStarted:
           "Please place your ID card on the top of the device's back side.",
