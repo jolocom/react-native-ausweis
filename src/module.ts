@@ -9,6 +9,7 @@ import {
   enterCanCmd,
   enterPukCmd,
   setAccessRights,
+  getReader,
 } from './commands'
 import {
   CommandDefinition,
@@ -64,10 +65,7 @@ export class Aa2Module {
   private queuedOperations: Array<
     CommandDefinition & { callbacks: { resolve: Function; reject: Function } }
   > = []
-  private handlers: HandlerDefinition<Message>[] = [
-    insertCardHandler,
-    readerHandler,
-  ]
+  private handlers: HandlerDefinition<Message>[] = [insertCardHandler]
   private eventHandlers: Partial<EventHandlers> = {}
 
   public isInitialized = false
@@ -185,7 +183,7 @@ export class Aa2Module {
         }
         this.nativeAa2Module.sendCMD(JSON.stringify(command))
       } else {
-        if(command.cmd === 'CANCEL') {
+        if (command.cmd === 'CANCEL') {
           this.abortTheFlow(command)
           return
         }
@@ -255,7 +253,7 @@ export class Aa2Module {
 
   private async waitTillCondition<T extends Message>(
     filter: Filter<T>,
-    pollInterval = 1500,
+    pollInterval = 1000,
   ): Promise<T> {
     await delay(pollInterval)
 
@@ -272,10 +270,8 @@ export class Aa2Module {
 
   public async checkIfCardWasRead() {
     return this.waitTillCondition(
-      (message: EnterPinMessage | EnterPukMessage | EnterCanMessage) =>
-        [Messages.enterPin, Messages.enterPuk, Messages.enterCan].includes(
-          message.msg,
-        ),
+      (message: ReaderMessage) =>
+        message.msg === Messages.reader && !!message.card,
     )
   }
 
@@ -304,6 +300,10 @@ export class Aa2Module {
 
   public cancelFlow() {
     return this.sendCmd(cancelFlow())
+  }
+
+  public getReader() {
+    return this.sendCmd(getReader())
   }
 
   public setAccessRights(optionalFields: Array<AccessRightsFields>) {

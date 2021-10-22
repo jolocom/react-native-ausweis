@@ -13,6 +13,7 @@ export enum Commands {
   getCertificate = 'GET_CERTIFICATE',
   cancel = 'CANCEL',
   setAccessRights = 'SET_ACCESS_RIGHTS',
+  getReader = 'GET_READER',
 }
 
 export interface EventHandlers {
@@ -120,5 +121,13 @@ export interface SetAccessRightsCommand<T extends Message>
   command: {
     cmd: Commands.setAccessRights
     chat: AccessRightsFields[]
+  }
+}
+
+export interface GetReaderCommand<T extends Message>
+  extends CommandDefinition<T> {
+  command: {
+    cmd: Commands.getReader
+    name: string
   }
 }

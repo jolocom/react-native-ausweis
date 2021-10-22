@@ -8,6 +8,7 @@ import {
   EnterPukCommand,
   GetCertificateCommand,
   GetInfoCommand,
+  GetReaderCommand,
   Handler,
   InitCommand,
   RunAuthCommand,
@@ -25,6 +26,7 @@ import {
   InitMessage,
   InsertCardMessage,
   Messages,
+  ReaderMessage,
 } from './messageTypes'
 import { AccessRightsFields, ScannerConfig } from './types'
 
@@ -325,6 +327,26 @@ export const setAccessRights = (
             return resolve(message)
           case Messages.badState:
             return reject(message.error)
+          default:
+            return reject(new Error('Unknown message type'))
+        }
+      },
+    },
+  }
+}
+
+export const getReader = (): GetReaderCommand<ReaderMessage> => {
+  return {
+    command: { cmd: Commands.getReader, name: 'NFC' },
+    handler: {
+      canHandle: [Messages.reader],
+      handle: (message, { handleCardInfo }, { resolve, reject }) => {
+        switch (message.msg) {
+          case Messages.reader:
+            if (message.card) {
+              handleCardInfo(message.card)
+            }
+            return resolve(message)
           default:
             return reject(new Error('Unknown message type'))
         }
