@@ -12,6 +12,7 @@ import {
 } from './commands'
 import {
   CommandDefinition,
+  disruptiveCommands,
   EventHandlers,
   HandlerDefinition,
 } from './commandTypes'
@@ -165,8 +166,13 @@ export class Aa2Module {
       if (!this.isInitialized) {
         return reject(new SdkNotInitializedError())
       }
-
-      if (!this.currentOperation) {
+      /**
+       * NOTE:
+       * there are some cmds that should not be queued;
+       * these cmds usually abort the workflow:
+       * cmds RUN_CHANGE_PIN | CANCEL
+       */
+      if (!this.currentOperation || disruptiveCommands.includes(command.cmd)) {
         this.currentOperation = {
           command,
           handler,
@@ -185,11 +191,6 @@ export class Aa2Module {
         }
         this.nativeAa2Module.sendCMD(JSON.stringify(command))
       } else {
-        if(command.cmd === 'CANCEL') {
-          this.abortTheFlow(command)
-          return
-        }
-
         this.queuedOperations.push({
           command,
           handler,

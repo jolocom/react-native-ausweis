@@ -15,6 +15,8 @@ export enum Commands {
   setAccessRights = 'SET_ACCESS_RIGHTS',
 }
 
+export const disruptiveCommands = [Commands.cancel]
+
 export interface EventHandlers {
   handlePinRequest: (cardInfo: CardInfo) => void
   handleCanRequest: (cardInfo: CardInfo) => void
