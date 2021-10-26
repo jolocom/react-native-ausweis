@@ -9,9 +9,10 @@
 `$ react-native link react-native-aa2-sdk`
 
 ## Usage
+
 ```javascript
-import Aa2Sdk from 'react-native-aa2-sdk';
+import Aa2Sdk from 'react-native-aa2-sdk'
 
 // TODO: What to do with the module?
-Aa2Sdk;
+Aa2Sdk
 ```
