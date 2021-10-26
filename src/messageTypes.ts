@@ -13,6 +13,8 @@ export enum Messages {
   insertCard = 'INSERT_CARD',
   certificate = 'CERTIFICATE',
   reader = 'READER',
+  enterNewPin = 'ENTER_NEW_PIN',
+  changePin = 'CHANGE_PIN',
 }
 
 export interface Message {
@@ -80,6 +82,11 @@ export interface EnterPinMessage extends Message {
   reader: ReaderInfo
 }
 
+export interface EnterNewPinMessage extends Message {
+  msg: Messages.enterNewPin
+  reader: ReaderInfo
+}
+
 export interface EnterPukMessage extends Message {
   msg: Messages.enterPuk
   reader: ReaderInfo
@@ -88,6 +95,11 @@ export interface EnterPukMessage extends Message {
 export interface EnterCanMessage extends Message {
   msg: Messages.enterCan
   reader: ReaderInfo
+}
+
+export interface ChangePinMessage extends Message {
+  msg: Messages.changePin
+  success: boolean
 }
 
 export interface InsertCardMessage extends Message {

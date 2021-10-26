@@ -9,6 +9,8 @@ import {
   enterCanCmd,
   enterPukCmd,
   setAccessRights,
+  setNewPin,
+  changePinCmd,
 } from './commands'
 import {
   CommandDefinition,
@@ -165,7 +167,13 @@ export class Aa2Module {
       if (!this.isInitialized) {
         return reject(new SdkNotInitializedError())
       }
-
+      /**
+       * NOTE:
+       * there are some cmds that should not be queued;
+       * these cmds usually abort the workflow:
+       * cmds RUN_CHANGE_PIN | CANCEL
+       */
+      // if (!this.currentOperation || command.cmd === 'RUN_CHANGE_PIN') {
       if (!this.currentOperation) {
         this.currentOperation = {
           command,
@@ -185,7 +193,7 @@ export class Aa2Module {
         }
         this.nativeAa2Module.sendCMD(JSON.stringify(command))
       } else {
-        if(command.cmd === 'CANCEL') {
+        if (command.cmd === 'CANCEL') {
           this.abortTheFlow(command)
           return
         }
@@ -202,7 +210,6 @@ export class Aa2Module {
 
   private abortTheFlow(command: CommandDefinition['command']) {
     this.nativeAa2Module.sendCMD(JSON.stringify(command))
-    this.currentOperation = undefined
     this.unprocessedMessages = []
   }
 
@@ -280,17 +287,17 @@ export class Aa2Module {
   }
 
   // TODO Make sure 5 / 6 digits
-  public async enterPin(pin: number) {
+  public async enterPin(pin: string) {
     return this.sendCmd(enterPinCmd(pin))
   }
 
   // TODO Make sure 6 digits
-  public async enterCan(can: number) {
+  public async enterCan(can: string) {
     return this.sendCmd(enterCanCmd(can))
   }
 
   // TODO Make sure 10 digits
-  public async enterPUK(puk: number) {
+  public async enterPUK(puk: string) {
     return this.sendCmd(enterPukCmd(puk))
   }
 
@@ -308,5 +315,13 @@ export class Aa2Module {
 
   public setAccessRights(optionalFields: Array<AccessRightsFields>) {
     return this.sendCmd(setAccessRights(optionalFields))
+  }
+
+  public setNewPin(pin: string) {
+    return this.sendCmd(setNewPin(pin))
+  }
+
+  public changePin() {
+    return this.sendCmd(changePinCmd())
   }
 }

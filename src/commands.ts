@@ -12,13 +12,16 @@ import {
   InitCommand,
   RunAuthCommand,
   SetAccessRightsCommand,
+  SetNewPinCommand,
 } from './commandTypes'
 import {
   AccessRightsMessage,
   AuthMessage,
   BadStateMessage,
   CertificateMessage,
+  ChangePinMessage,
   EnterCanMessage,
+  EnterNewPinMessage,
   EnterPinMessage,
   EnterPukMessage,
   InfoMessage,
@@ -87,12 +90,16 @@ export const runAuthCmd = (
 export const changePinCmd = (
   config?: ScannerConfig,
 ): ChangePinCommand<
-  BadStateMessage | EnterPinMessage | EnterPukMessage | EnterCanMessage
+  | BadStateMessage
+  | EnterPinMessage
+  | EnterPukMessage
+  | EnterCanMessage
+  | ChangePinMessage
 > => {
   return {
     command: {
       cmd: Commands.runChangePin,
-      handleInterrupt: false,
+      handleInterrupt: true,
       messages: {
         sessionStarted:
           config?.sessionStarted ??
@@ -111,10 +118,16 @@ export const changePinCmd = (
         Messages.enterPin,
         Messages.enterPuk,
         Messages.enterCan,
+        Messages.changePin,
       ],
       handle: (
         message,
-        { handlePinRequest, handlePukRequest, handleCanRequest },
+        {
+          handlePinRequest,
+          handlePukRequest,
+          handleCanRequest,
+          handleChangePin,
+        },
         { resolve, reject },
       ) => {
         switch (message.msg) {
@@ -127,6 +140,17 @@ export const changePinCmd = (
           case Messages.enterCan:
             handleCanRequest && handleCanRequest(message.reader.card)
             return resolve(message)
+          case Messages.changePin:
+            handleChangePin && handleChangePin(message.success)
+            /**
+             * NOTE: happens on iOS
+             * when cancelling NFC popup when INSERT_CARD
+             * msg comes in (before ENTER_PIN msg) in RUN_CHANGE_PIN wf
+             */
+            if (typeof message.success === 'boolean') {
+              return resolve(message)
+            }
+            return
           default:
             return reject(new Error(message.error))
         }
@@ -136,18 +160,41 @@ export const changePinCmd = (
 }
 
 export const enterPukCmd = (
-  puk: number,
-): EnterPukCommand<BadStateMessage | EnterPinMessage | EnterPukMessage> => {
+  puk: string,
+): EnterPukCommand<
+  BadStateMessage | EnterPinMessage | EnterPukMessage | ChangePinMessage
+> => {
   return {
     command: {
       cmd: Commands.setPuk,
-      value: puk.toString(),
+      value: puk,
     },
     handler: {
-      canHandle: [Messages.badState, Messages.enterPin, Messages.enterPuk],
+      canHandle: [
+        Messages.badState,
+        Messages.enterPin,
+        Messages.enterPuk,
+        Messages.changePin,
+      ],
       handle: (message, eventHandlers, { reject, resolve }) => {
-        const { handlePukRequest, handlePinRequest } = eventHandlers
+        const {
+          handlePukRequest,
+          handlePinRequest,
+          handleChangePin,
+        } = eventHandlers
         switch (message.msg) {
+          case Messages.changePin:
+            /**
+             * NOTE: happens when pressing
+             * cancel on NFC popup during
+             * the RUN_CHANGE_PIN flow;
+             * on iOS AA2SDk send it declaratively
+             * after pressing Cancel on the popup;
+             * on Android Cancel btn sends CANCEL cmd
+             * which returns this message
+             */
+            handleChangePin && handleChangePin(message.success)
+            return resolve(message)
           case Messages.enterPin:
             handlePinRequest && handlePinRequest(message.reader.card)
             return resolve(message)
@@ -163,25 +210,44 @@ export const enterPukCmd = (
 }
 
 export const enterCanCmd = (
-  can: number,
-): EnterCanCommand<BadStateMessage | EnterPinMessage | EnterCanMessage> => {
+  can: string,
+): EnterCanCommand<
+  BadStateMessage | EnterPinMessage | EnterCanMessage | ChangePinMessage
+> => {
   return {
     command: {
       cmd: Commands.setCan,
-      value: can.toString(),
+      value: can,
     },
     handler: {
-      canHandle: [Messages.enterPin, Messages.enterCan],
+      canHandle: [Messages.enterPin, Messages.enterCan, Messages.changePin],
       handle: (message, eventHandlers, { resolve, reject }) => {
-        const { handleCanRequest, handlePinRequest } = eventHandlers
+        const {
+          handleCanRequest,
+          handlePinRequest,
+          handleChangePin,
+        } = eventHandlers
 
         switch (message.msg) {
+          case Messages.changePin:
+            /**
+             * NOTE: happens when pressing
+             * cancel on NFC popup during
+             * the RUN_CHANGE_PIN flow;
+             * on iOS AA2SDk send it declaratively
+             * after pressing Cancel on the popup;
+             * on Android Cancel btn sends CANCEL cmd
+             * which returns this message
+             */
+            handleChangePin && handleChangePin(message.success)
+            return resolve(message)
           case Messages.enterPin:
             handlePinRequest && handlePinRequest(message.reader.card)
             return resolve(message)
           case Messages.enterCan:
             handleCanRequest && handleCanRequest(message.reader.card)
             return resolve(message)
+
           default:
             return reject(new Error(message.error))
         }
@@ -191,14 +257,19 @@ export const enterCanCmd = (
 }
 
 export const enterPinCmd = (
-  pin: number,
+  pin: string,
 ): EnterPinCommand<
-  EnterPinMessage | EnterPukMessage | EnterCanMessage | AuthMessage
+  | EnterPinMessage
+  | EnterPukMessage
+  | EnterCanMessage
+  | AuthMessage
+  | EnterNewPinMessage
+  | ChangePinMessage
 > => {
   return {
     command: {
       cmd: Commands.setPin,
-      value: pin.toString(),
+      value: pin,
     },
     handler: {
       canHandle: [
@@ -206,6 +277,8 @@ export const enterPinCmd = (
         Messages.enterPin,
         Messages.enterCan,
         Messages.auth,
+        Messages.enterNewPin,
+        Messages.changePin,
       ],
       handle: (message, eventHandlers, { resolve, reject }) => {
         const {
@@ -213,9 +286,26 @@ export const enterPinCmd = (
           handleAuthResult,
           handlePinRequest,
           handlePukRequest,
+          handleEnterNewPin,
+          handleChangePin,
         } = eventHandlers
 
         switch (message.msg) {
+          case Messages.changePin:
+            /**
+             * NOTE: happens when pressing
+             * cancel on NFC popup during
+             * the RUN_CHANGE_PIN flow;
+             * on iOS AA2SDk send it declaratively
+             * after pressing Cancel on the popup;
+             * on Android Cancel btn sends CANCEL cmd
+             * which returns this message
+             */
+            handleChangePin && handleChangePin(message.success)
+            return resolve(message)
+          case Messages.enterNewPin:
+            handleEnterNewPin && handleEnterNewPin()
+            return resolve(message)
           case Messages.auth:
             if (message.url) {
               handleAuthResult && handleAuthResult(message.url)
@@ -293,17 +383,22 @@ export const getCertificate = (): GetCertificateCommand<CertificateMessage> => {
   }
 }
 
-export const cancelFlow = (): CancelCommand<BadStateMessage | AuthMessage> => {
+export const cancelFlow = (): CancelCommand<
+  BadStateMessage | AuthMessage | ChangePinMessage
+> => {
   return {
     command: { cmd: Commands.cancel },
     handler: {
-      canHandle: [Messages.auth, Messages.badState],
-      handle: (message, _, { resolve, reject }) => {
+      canHandle: [Messages.auth, Messages.badState, Messages.changePin],
+      handle: (message, { handleChangePin }, { resolve, reject }) => {
         switch (message.msg) {
           case Messages.auth:
             return resolve(message)
           case Messages.badState:
             return reject(message.error)
+          case Messages.changePin:
+            handleChangePin && handleChangePin(message.success)
+            return resolve(message)
           default:
             return reject(new Error('Unknown message type'))
         }
@@ -328,6 +423,20 @@ export const setAccessRights = (
           default:
             return reject(new Error('Unknown message type'))
         }
+      },
+    },
+  }
+}
+
+export const setNewPin = (pin: string): SetNewPinCommand<ChangePinMessage> => {
+  return {
+    command: { cmd: Commands.setNewPin, value: pin },
+    handler: {
+      canHandle: [Messages.changePin],
+      handle: (message, eventHandlers, { resolve }) => {
+        const { handleChangePin } = eventHandlers
+        handleChangePin && handleChangePin(message.success)
+        return resolve(message)
       },
     },
   }
