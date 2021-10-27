@@ -99,7 +99,7 @@ export interface EnterCanMessage extends Message {
 
 export interface ChangePinMessage extends Message {
   msg: Messages.changePin
-  success: boolean
+  success?: boolean
 }
 
 export interface InsertCardMessage extends Message {
