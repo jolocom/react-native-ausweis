@@ -274,6 +274,7 @@ export const acceptAuthReqCmd = (): AcceptCommand<
             return resolve(message)
           case Messages.auth:
             handleAuthResult && handleAuthResult(message.url)
+            return resolve(message)
           default:
             return reject(new Error('Unknown message type'))
         }
