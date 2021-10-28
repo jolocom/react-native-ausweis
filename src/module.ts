@@ -185,7 +185,7 @@ export class Aa2Module {
         }
         this.nativeAa2Module.sendCMD(JSON.stringify(command))
       } else {
-        if(command.cmd === 'CANCEL') {
+        if (command.cmd === 'CANCEL') {
           this.abortTheFlow(command)
           return
         }
