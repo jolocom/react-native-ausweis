@@ -24,7 +24,8 @@ export interface EventHandlers {
   handleCardRequest: () => void
   handleAuthResult: (url: string) => void
   handleEnterNewPin: () => void
-  handleChangePin: (success: boolean) => void
+  handleChangePinCancel: () => void
+  handleChangePinSuccess: () => void
 }
 
 export type Handler<T extends Message> = (
