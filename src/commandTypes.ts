@@ -16,6 +16,8 @@ export enum Commands {
   setNewPin = 'SET_NEW_PIN',
 }
 
+export const disruptiveCommands = [Commands.cancel]
+
 export interface EventHandlers {
   handlePinRequest: (cardInfo: CardInfo) => void
   handleCanRequest: (cardInfo: CardInfo) => void

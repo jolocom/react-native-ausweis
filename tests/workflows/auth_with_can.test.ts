@@ -1,6 +1,6 @@
-import { Aa2Module } from "../../src/module"
-import { Events } from "../../src/types"
-import { testWorkflowData } from "./../data"
+import { Aa2Module } from '../../src/module'
+import { Events } from '../../src/types'
+import { testWorkflowData } from './../data'
 
 const wrap = (msg: Object) => JSON.stringify({ message: JSON.stringify(msg) })
 
@@ -34,18 +34,18 @@ const getTestAaModule = async () => {
   return aa2Sdk
 }
 
-it("Successful authentication with CAN", async () => {
+it('Successful authentication with CAN', async () => {
   const aa2Sdk = await getTestAaModule()
 
   const processReqPromise = aa2Sdk.processRequest(
-    "https://test.governikus-eid.de/DEMO"
+    'https://test.governikus-eid.de/DEMO',
   )
 
   emitter.dispatch(Events.message, wrap(testWorkflowData.auth.empty))
   emitter.dispatch(Events.message, wrap(testWorkflowData.accessRights))
 
   await expect(processReqPromise).resolves.toStrictEqual(
-    testWorkflowData.accessRights
+    testWorkflowData.accessRights,
   )
 
   aa2Sdk.acceptAuthRequest()
@@ -55,7 +55,7 @@ it("Successful authentication with CAN", async () => {
   emitter.dispatch(Events.message, wrap(testWorkflowData.pinRequest))
 
   await expect(cardReadPromise).resolves.toStrictEqual(
-    testWorkflowData.pinRequest
+    testWorkflowData.pinRequest,
   )
 
   // Incorrect pin entry
@@ -69,7 +69,7 @@ it("Successful authentication with CAN", async () => {
   emitter.dispatch(Events.message, wrap(testWorkflowData.canRequest))
 
   await expect(repeatedPinPromise).resolves.toStrictEqual(
-    testWorkflowData.canRequest
+    testWorkflowData.canRequest,
   )
 
   const canPromise = aa2Sdk.enterCan(555555)
@@ -77,7 +77,7 @@ it("Successful authentication with CAN", async () => {
   emitter.dispatch(Events.message, wrap(testWorkflowData.repeatedPinRequest))
 
   await expect(canPromise).resolves.toStrictEqual(
-    testWorkflowData.repeatedPinRequest
+    testWorkflowData.repeatedPinRequest,
   )
 
   const correctPinPromise = aa2Sdk.enterPin(159652)
@@ -85,6 +85,6 @@ it("Successful authentication with CAN", async () => {
   emitter.dispatch(Events.message, wrap(testWorkflowData.auth.success))
 
   await expect(correctPinPromise).resolves.toStrictEqual(
-    testWorkflowData.auth.success
+    testWorkflowData.auth.success,
   )
 })

@@ -306,7 +306,7 @@ export const enterPinCmd = (
 }
 
 export const acceptAuthReqCmd = (): AcceptCommand<
-  EnterPinMessage | EnterPukMessage | EnterCanMessage | InsertCardMessage
+  EnterPinMessage | EnterPukMessage | EnterCanMessage | AuthMessage
 > => {
   return {
     command: {
@@ -314,25 +314,22 @@ export const acceptAuthReqCmd = (): AcceptCommand<
     },
     handler: {
       canHandle: [
-        Messages.insertCard,
         Messages.enterPin,
         Messages.enterCan,
         Messages.enterPuk,
+        Messages.auth
       ],
       handle: (
         message,
         {
-          handleCardRequest,
           handlePinRequest,
           handlePukRequest,
           handleCanRequest,
+          handleAuthResult
         },
         { resolve, reject },
       ) => {
         switch (message.msg) {
-          case Messages.insertCard:
-            handleCardRequest && handleCardRequest()
-            return
           case Messages.enterPin:
             handlePinRequest && handlePinRequest(message.reader.card)
             return resolve(message)
@@ -341,6 +338,9 @@ export const acceptAuthReqCmd = (): AcceptCommand<
             return resolve(message)
           case Messages.enterCan:
             handleCanRequest && handleCanRequest(message.reader.card)
+            return resolve(message)
+          case Messages.auth:
+            handleAuthResult && handleAuthResult(message.url)
             return resolve(message)
           default:
             return reject(new Error('Unknown message type'))

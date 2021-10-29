@@ -1,6 +1,6 @@
-import { Aa2Module } from "../../src/module"
-import { Events } from "../../src/types"
-import { testWorkflowData } from "../data"
+import { Aa2Module } from '../../src/module'
+import { Events } from '../../src/types'
+import { testWorkflowData } from '../data'
 
 class TestEmitter {
   private listeners: { Events?: Function } = {}
@@ -33,18 +33,18 @@ const getTestAaModule = async () => {
 }
 
 const wrap = (msg: Object) => JSON.stringify({ message: JSON.stringify(msg) })
-it("Minimal successful authentication", async () => {
+it('Minimal successful authentication', async () => {
   const aa2Sdk = await getTestAaModule()
 
   const processReqPromise = aa2Sdk.processRequest(
-    "https://test.governikus-eid.de/DEMO"
+    'https://test.governikus-eid.de/DEMO',
   )
 
   emitter.dispatch(Events.message, wrap(testWorkflowData.auth.empty))
   emitter.dispatch(Events.message, wrap(testWorkflowData.accessRights))
 
   await expect(processReqPromise).resolves.toStrictEqual(
-    testWorkflowData.accessRights
+    testWorkflowData.accessRights,
   )
 
   aa2Sdk.acceptAuthRequest()
@@ -55,7 +55,7 @@ it("Minimal successful authentication", async () => {
   emitter.dispatch(Events.message, wrap(testWorkflowData.pinRequest))
 
   await expect(cardReadPromise).resolves.toStrictEqual(
-    testWorkflowData.pinRequest
+    testWorkflowData.pinRequest,
   )
 
   const pinPromise = aa2Sdk.enterPin(111111)
