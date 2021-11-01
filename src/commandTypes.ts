@@ -13,6 +13,7 @@ export enum Commands {
   getCertificate = 'GET_CERTIFICATE',
   cancel = 'CANCEL',
   setAccessRights = 'SET_ACCESS_RIGHTS',
+  setNewPin = 'SET_NEW_PIN',
 }
 
 export const disruptiveCommands = [Commands.cancel]
@@ -24,6 +25,9 @@ export interface EventHandlers {
   handleCardInfo: (cardInfo: CardInfo) => void
   handleCardRequest: () => void
   handleAuthResult: (url: string) => void
+  handleEnterNewPin: () => void
+  handleChangePinCancel: () => void
+  handleChangePinSuccess: () => void
 }
 
 export type Handler<T extends Message> = (
@@ -122,5 +126,13 @@ export interface SetAccessRightsCommand<T extends Message>
   command: {
     cmd: Commands.setAccessRights
     chat: AccessRightsFields[]
+  }
+}
+
+export interface SetNewPinCommand<T extends Message>
+  extends CommandDefinition<T> {
+  command: {
+    cmd: Commands.setNewPin
+    value: string
   }
 }
