@@ -28,7 +28,7 @@ import {
   Messages,
   ReaderMessage,
 } from './messageTypes'
-import { Filter, Events, AccessRightsFields } from './types'
+import { Filter, Events, AccessRightsFields, ScannerConfig } from './types'
 
 const delay = async (delay: number) => {
   return new Promise((resolve) => setTimeout(resolve, delay))
@@ -140,8 +140,8 @@ export class Aa2Module {
    * @see https://www.ausweisapp.bund.de/sdk/commands.html#run-auth
    */
 
-  public async processRequest(tcTokenUrl: string) {
-    return this.sendCmd(runAuthCmd(tcTokenUrl))
+  public async processRequest(tcTokenUrl: string, config?: ScannerConfig ) {
+    return this.sendCmd(runAuthCmd(tcTokenUrl, config))
   }
 
   private rejectCurrentOperation(errorMessage: string) {
@@ -310,7 +310,7 @@ export class Aa2Module {
     return this.sendCmd(setNewPin(pin))
   }
 
-  public changePin() {
-    return this.sendCmd(changePinCmd())
+  public changePin(config?: ScannerConfig) {
+    return this.sendCmd(changePinCmd(config))
   }
 }
