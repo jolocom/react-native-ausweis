@@ -61,3 +61,7 @@ export type AccessRights = {
   // NOTE: contains both the `optional` and `required` fields
   effective: AccessRightsFields[]
 }
+
+export enum CardError {
+  cardIsBlocked = 'cardIsBlocked',
+}
