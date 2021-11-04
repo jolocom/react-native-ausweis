@@ -29,7 +29,7 @@ import {
   InsertCardMessage,
   Messages,
 } from './messageTypes'
-import { AccessRightsFields, ScannerConfig } from './types'
+import { AccessRightsFields, CardError, ScannerConfig } from './types'
 
 export const initSdkCmd = (
   callback: Handler<InitMessage>,
@@ -141,7 +141,7 @@ export const changePinCmd = (
             handleCanRequest && handleCanRequest(message.reader.card)
             return resolve(message)
           case Messages.changePin:
-            if(message.success === false) {
+            if (message.success === false) {
               handleChangePinCancel && handleChangePinCancel()
               return resolve(message)
             }
@@ -157,7 +157,11 @@ export const changePinCmd = (
 export const enterPukCmd = (
   puk: string,
 ): EnterPukCommand<
-  BadStateMessage | EnterPinMessage | EnterPukMessage | ChangePinMessage
+  | BadStateMessage
+  | EnterPinMessage
+  | EnterPukMessage
+  | ChangePinMessage
+  | AuthMessage
 > => {
   return {
     command: {
@@ -170,18 +174,22 @@ export const enterPukCmd = (
         Messages.enterPin,
         Messages.enterPuk,
         Messages.changePin,
+        Messages.auth,
       ],
       handle: (message, eventHandlers, { reject, resolve }) => {
-        const {
-          handlePukRequest,
-          handlePinRequest,
-          handleChangePinCancel,
-        } = eventHandlers
+        const { handlePukRequest, handlePinRequest } = eventHandlers
         switch (message.msg) {
+          /**
+           * NOTE:
+           * if we receive CHANGE_PIN or AUTH as a response to SET_PUK
+           * cmd, this indicates that the card is blocked, therefore, we are
+           * rejecting.
+           */
+          case Messages.auth:
+            return reject(CardError.cardIsBlocked)
           case Messages.changePin:
-            if(message.success === false) {
-              handleChangePinCancel && handleChangePinCancel()
-              return resolve(message)
+            if (message.success === false) {
+              return reject(CardError.cardIsBlocked)
             }
             return
           case Messages.enterPin:
@@ -214,12 +222,12 @@ export const enterCanCmd = (
         const {
           handleCanRequest,
           handlePinRequest,
-          handleChangePinCancel
+          handleChangePinCancel,
         } = eventHandlers
 
         switch (message.msg) {
           case Messages.changePin:
-             if(message.success === false) {
+            if (message.success === false) {
               handleChangePinCancel && handleChangePinCancel()
               return resolve(message)
             }
@@ -270,12 +278,12 @@ export const enterPinCmd = (
           handlePinRequest,
           handlePukRequest,
           handleEnterNewPin,
-          handleChangePinCancel
+          handleChangePinCancel,
         } = eventHandlers
 
         switch (message.msg) {
           case Messages.changePin:
-            if(message.success === false) {
+            if (message.success === false) {
               handleChangePinCancel && handleChangePinCancel()
               return resolve(message)
             }
@@ -284,6 +292,12 @@ export const enterPinCmd = (
             handleEnterNewPin && handleEnterNewPin()
             return resolve(message)
           case Messages.auth:
+            /**
+             * NOTE:
+             * message.url is a wrong condition,
+             * when AUTH wasn't successful 'url' property
+             * is there too
+             */
             if (message.url) {
               handleAuthResult && handleAuthResult(message.url)
               return resolve(message)
@@ -317,7 +331,7 @@ export const acceptAuthReqCmd = (): AcceptCommand<
         Messages.enterPin,
         Messages.enterCan,
         Messages.enterPuk,
-        Messages.auth
+        Messages.auth,
       ],
       handle: (
         message,
@@ -325,7 +339,7 @@ export const acceptAuthReqCmd = (): AcceptCommand<
           handlePinRequest,
           handlePukRequest,
           handleCanRequest,
-          handleAuthResult
+          handleAuthResult,
         },
         { resolve, reject },
       ) => {
@@ -367,14 +381,24 @@ export const cancelFlow = (): CancelCommand<
     command: { cmd: Commands.cancel },
     handler: {
       canHandle: [Messages.auth, Messages.badState, Messages.changePin],
-      handle: (message, { handleChangePinCancel }, { resolve, reject }) => {
+      handle: (
+        message,
+        { handleChangePinCancel, handleAuthResult },
+        { resolve, reject },
+      ) => {
+        /**
+         * NOTE: we are resolving all the messages here, because when
+         * user sends CANCEL cmd these msgs indicate the end of a flow;
+         * this is not an erroneous state
+         */
         switch (message.msg) {
           case Messages.auth:
+            handleAuthResult && handleAuthResult(message.url)
             return resolve(message)
           case Messages.badState:
             return reject(message.error)
           case Messages.changePin:
-            if(message.success === false) {
+            if (message.success === false) {
               handleChangePinCancel && handleChangePinCancel()
               return resolve(message)
             }
@@ -415,12 +439,12 @@ export const setNewPin = (pin: string): SetNewPinCommand<ChangePinMessage> => {
       canHandle: [Messages.changePin],
       handle: (message, eventHandlers, { resolve }) => {
         const { handleChangePinSuccess, handleChangePinCancel } = eventHandlers
-        if(message.success === true) {
+        if (message.success === true) {
           handleChangePinSuccess && handleChangePinSuccess()
           return resolve(message)
-        } else if(message.success === false) {
+        } else if (message.success === false) {
           handleChangePinCancel && handleChangePinCancel()
-          return resolve(message)          
+          return resolve(message)
         }
       },
     },

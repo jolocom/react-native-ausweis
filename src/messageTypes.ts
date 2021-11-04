@@ -55,6 +55,13 @@ export interface InfoMessage extends Message {
 export interface AuthMessage extends Message {
   msg: Messages.auth
   url?: string
+  result?: {
+    description: string
+    language: string
+    major: string
+    message: string
+    minor: string
+  }
 }
 
 export interface AccessRightsMessage extends Message {
