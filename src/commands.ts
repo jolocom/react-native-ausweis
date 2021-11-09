@@ -274,11 +274,12 @@ export const enterPinCmd = (
       handle: (message, eventHandlers, { resolve, reject }) => {
         const {
           handleCanRequest,
-          handleAuthResult,
           handlePinRequest,
           handlePukRequest,
           handleEnterNewPin,
           handleChangePinCancel,
+          handleAuthFailed,
+          handleAuthSuccess,
         } = eventHandlers
 
         switch (message.msg) {
@@ -292,16 +293,12 @@ export const enterPinCmd = (
             handleEnterNewPin && handleEnterNewPin()
             return resolve(message)
           case Messages.auth:
-            /**
-             * NOTE:
-             * message.url is a wrong condition,
-             * when AUTH wasn't successful 'url' property
-             * is there too
-             */
-            if (message.url) {
-              handleAuthResult && handleAuthResult(message.url)
-              return resolve(message)
-            } else return reject(message)
+            if (message.result?.message) {
+              handleAuthFailed && handleAuthFailed(message.result.message)
+            }
+            handleAuthSuccess && handleAuthSuccess()
+            return resolve(message)
+
           case Messages.enterPin:
             handlePinRequest && handlePinRequest(message.reader?.card)
             return resolve(message)
@@ -339,7 +336,8 @@ export const acceptAuthReqCmd = (): AcceptCommand<
           handlePinRequest,
           handlePukRequest,
           handleCanRequest,
-          handleAuthResult,
+          handleAuthFailed,
+          handleAuthSuccess,
         },
         { resolve, reject },
       ) => {
@@ -353,8 +351,11 @@ export const acceptAuthReqCmd = (): AcceptCommand<
           case Messages.enterCan:
             handleCanRequest && handleCanRequest(message.reader.card)
             return resolve(message)
+
           case Messages.auth:
-            handleAuthResult && handleAuthResult(message.url)
+            if (message.result?.message) {
+              handleAuthFailed && handleAuthFailed(message.result.message)
+            }
             return resolve(message)
           default:
             return reject(new Error('Unknown message type'))
@@ -383,7 +384,7 @@ export const cancelFlow = (): CancelCommand<
       canHandle: [Messages.auth, Messages.badState, Messages.changePin],
       handle: (
         message,
-        { handleChangePinCancel, handleAuthResult },
+        { handleChangePinCancel, handleAuthFailed, handleAuthSuccess },
         { resolve, reject },
       ) => {
         /**
@@ -393,7 +394,9 @@ export const cancelFlow = (): CancelCommand<
          */
         switch (message.msg) {
           case Messages.auth:
-            handleAuthResult && handleAuthResult(message.url)
+            if (message.result?.message) {
+              handleAuthFailed && handleAuthFailed(message.result.message)
+            }
             return resolve(message)
           case Messages.badState:
             return reject(message.error)
