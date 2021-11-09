@@ -20,6 +20,7 @@ import {
 } from './commandTypes'
 import { SdkNotInitializedError } from './errors'
 import {
+  BadStateMessage,
   EnterCanMessage,
   EnterPinMessage,
   EnterPukMessage,
@@ -52,6 +53,13 @@ const readerHandler: HandlerDefinition<ReaderMessage> = {
   },
 }
 
+const badStateHandler: HandlerDefinition<BadStateMessage> = {
+  canHandle: [Messages.badState],
+  handle: (message, _, { reject }) => {
+    return reject(message.error)
+  },
+}
+
 export class Aa2Module {
   private nativeAa2Module: any
   private unprocessedMessages: Message[] = []
@@ -70,6 +78,7 @@ export class Aa2Module {
   private handlers: HandlerDefinition<Message>[] = [
     insertCardHandler,
     readerHandler,
+    badStateHandler,
   ]
   private eventHandlers: Partial<EventHandlers> = {}
 

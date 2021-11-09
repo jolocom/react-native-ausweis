@@ -17,7 +17,6 @@ import {
 import {
   AccessRightsMessage,
   AuthMessage,
-  BadStateMessage,
   CertificateMessage,
   ChangePinMessage,
   EnterCanMessage,
@@ -26,7 +25,6 @@ import {
   EnterPukMessage,
   InfoMessage,
   InitMessage,
-  InsertCardMessage,
   Messages,
 } from './messageTypes'
 import { AccessRightsFields, CardError, ScannerConfig } from './types'
@@ -90,11 +88,7 @@ export const runAuthCmd = (
 export const changePinCmd = (
   config?: ScannerConfig,
 ): ChangePinCommand<
-  | BadStateMessage
-  | EnterPinMessage
-  | EnterPukMessage
-  | EnterCanMessage
-  | ChangePinMessage
+  EnterPinMessage | EnterPukMessage | EnterCanMessage | ChangePinMessage
 > => {
   return {
     command: {
@@ -114,7 +108,6 @@ export const changePinCmd = (
     },
     handler: {
       canHandle: [
-        Messages.badState,
         Messages.enterPin,
         Messages.enterPuk,
         Messages.enterCan,
@@ -157,11 +150,7 @@ export const changePinCmd = (
 export const enterPukCmd = (
   puk: string,
 ): EnterPukCommand<
-  | BadStateMessage
-  | EnterPinMessage
-  | EnterPukMessage
-  | ChangePinMessage
-  | AuthMessage
+  EnterPinMessage | EnterPukMessage | ChangePinMessage | AuthMessage
 > => {
   return {
     command: {
@@ -170,7 +159,6 @@ export const enterPukCmd = (
     },
     handler: {
       canHandle: [
-        Messages.badState,
         Messages.enterPin,
         Messages.enterPuk,
         Messages.changePin,
@@ -208,9 +196,7 @@ export const enterPukCmd = (
 
 export const enterCanCmd = (
   can: string,
-): EnterCanCommand<
-  BadStateMessage | EnterPinMessage | EnterCanMessage | ChangePinMessage
-> => {
+): EnterCanCommand<EnterPinMessage | EnterCanMessage | ChangePinMessage> => {
   return {
     command: {
       cmd: Commands.setCan,
@@ -374,13 +360,11 @@ export const getCertificate = (): GetCertificateCommand<CertificateMessage> => {
   }
 }
 
-export const cancelFlow = (): CancelCommand<
-  BadStateMessage | AuthMessage | ChangePinMessage
-> => {
+export const cancelFlow = (): CancelCommand<AuthMessage | ChangePinMessage> => {
   return {
     command: { cmd: Commands.cancel },
     handler: {
-      canHandle: [Messages.auth, Messages.badState, Messages.changePin],
+      canHandle: [Messages.auth, Messages.changePin],
       handle: (
         message,
         { handleChangePinCancel, handleAuthResult },
@@ -395,8 +379,6 @@ export const cancelFlow = (): CancelCommand<
           case Messages.auth:
             handleAuthResult && handleAuthResult(message.url)
             return resolve(message)
-          case Messages.badState:
-            return reject(message.error)
           case Messages.changePin:
             if (message.success === false) {
               handleChangePinCancel && handleChangePinCancel()
@@ -413,17 +395,15 @@ export const cancelFlow = (): CancelCommand<
 
 export const setAccessRights = (
   optionalFields: Array<AccessRightsFields>,
-): SetAccessRightsCommand<AccessRightsMessage | BadStateMessage> => {
+): SetAccessRightsCommand<AccessRightsMessage> => {
   return {
     command: { cmd: Commands.setAccessRights, chat: optionalFields },
     handler: {
-      canHandle: [Messages.accessRights, Messages.badState],
+      canHandle: [Messages.accessRights],
       handle: (message, _, { resolve, reject }) => {
         switch (message.msg) {
           case Messages.accessRights:
             return resolve(message)
-          case Messages.badState:
-            return reject(message.error)
           default:
             return reject(new Error('Unknown message type'))
         }
