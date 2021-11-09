@@ -140,7 +140,7 @@ export const changePinCmd = (
             }
             return
           default:
-            return reject(new Error(message.error))
+            return reject(new Error('Unknown message type'))
         }
       },
     },
@@ -187,7 +187,7 @@ export const enterPukCmd = (
             handlePukRequest && handlePukRequest(message.reader.card)
             return resolve(message)
           default:
-            return reject(new Error(message.error))
+            return reject(new Error('Unknown message type'))
         }
       },
     },
@@ -226,7 +226,7 @@ export const enterCanCmd = (
             return resolve(message)
 
           default:
-            return reject(new Error(message.error))
+            return reject(new Error('Unknown message type'))
         }
       },
     },
