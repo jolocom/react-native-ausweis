@@ -24,7 +24,8 @@ export interface EventHandlers {
   handlePukRequest: (cardInfo: CardInfo) => void
   handleCardInfo: (cardInfo: CardInfo) => void
   handleCardRequest: () => void
-  handleAuthResult: (url: string) => void
+  handleAuthFailed: (message: string) => void
+  handleAuthSuccess: () => void
   handleEnterNewPin: () => void
   handleChangePinCancel: () => void
   handleChangePinSuccess: () => void
