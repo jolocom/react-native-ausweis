@@ -74,11 +74,15 @@ export const runAuthCmd = (
     handler: {
       canHandle: [Messages.accessRights, Messages.auth],
       handle: (message, _, { resolve, reject }) => {
-        if (message.msg === Messages.auth && message.error) {
-          return reject(new Error(message.error))
-        }
-        if (message.msg === Messages.accessRights) {
-          return resolve(message)
+        switch (message.msg) {
+          case Messages.auth:
+            if (message?.result?.message) {
+              return reject(message.result.message)
+            }
+          case Messages.accessRights:
+            return resolve(message)
+          default:
+            return reject(new Error('Unknown message type'))
         }
       },
     },
@@ -280,7 +284,8 @@ export const enterPinCmd = (
             return resolve(message)
           case Messages.auth:
             if (message.result?.message) {
-              handleAuthFailed && handleAuthFailed(message.url, message.result.message)
+              handleAuthFailed &&
+                handleAuthFailed(message.url, message.result.message)
             }
             handleAuthSuccess && handleAuthSuccess(message.url)
             return resolve(message)
@@ -340,7 +345,8 @@ export const acceptAuthReqCmd = (): AcceptCommand<
 
           case Messages.auth:
             if (message.result?.message) {
-              handleAuthFailed && handleAuthFailed(message.url, message.result.message)
+              handleAuthFailed &&
+                handleAuthFailed(message.url, message.result.message)
             }
             return resolve(message)
           default:
@@ -379,7 +385,8 @@ export const cancelFlow = (): CancelCommand<AuthMessage | ChangePinMessage> => {
         switch (message.msg) {
           case Messages.auth:
             if (message.result?.message) {
-              handleAuthFailed && handleAuthFailed(message.url, message.result.message)
+              handleAuthFailed &&
+                handleAuthFailed(message.url, message.result.message)
             }
             return resolve(message)
           case Messages.changePin:
