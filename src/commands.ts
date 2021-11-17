@@ -79,6 +79,7 @@ export const runAuthCmd = (
             if (message?.result?.message) {
               return reject(message.result.message)
             }
+            return
           case Messages.accessRights:
             return resolve(message)
           default:
