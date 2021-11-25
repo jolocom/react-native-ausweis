@@ -287,8 +287,9 @@ export const enterPinCmd = (
             if (message.result?.message) {
               handleAuthFailed &&
                 handleAuthFailed(message.url, message.result.message)
+            } else {
+              handleAuthSuccess && handleAuthSuccess(message.url)
             }
-            handleAuthSuccess && handleAuthSuccess(message.url)
             return resolve(message)
 
           case Messages.enterPin:
