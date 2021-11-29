@@ -31,13 +31,17 @@ describe('Change pin workflow', () => {
 
   beforeAll(async () => {
     aa2NM = await initializaAA2NM()
+  })
+  afterEach(() => {
+    runChangePinMessagesSequence = undefined
+  })
+  
+  test('user completes the workflow', async () => {
     runChangePinMessagesSequence = getRunChangePinMessagesSequence(
       emitter,
       changePinFlow.buildHappyPath(),
     )
-  })
 
-  test('goes through happy path', async () => {
     const changePinPromise = aa2NM.changePin()
 
     // fire messages: CHANGE_PIN, INSERT_CARD, ENTER_PIN
@@ -65,6 +69,55 @@ describe('Change pin workflow', () => {
     await expect(setNewPinPromise).resolves.toEqual({
       msg: Messages.changePin,
       success: true,
+    })
+  })
+
+  test('user interrupts the workflow after scanning the card is requested', async () => {
+    runChangePinMessagesSequence = getRunChangePinMessagesSequence(
+      emitter,
+      changePinFlow.buildWithCancel(),
+    )
+
+    aa2NM.changePin()
+    // fire messages: CHANGE_PIN, INSERT_CARD
+    runChangePinMessagesSequence.next()
+
+    const cancelWorkflow = aa2NM.cancelFlow()
+    // fire messages: CHANGE_PIN
+    runChangePinMessagesSequence.next()
+
+    await expect(cancelWorkflow).resolves.toEqual({
+      msg: Messages.changePin,
+      success: false
+    })
+  })
+
+  test('user interrupts the workflow after pin is requested', async () => {
+    runChangePinMessagesSequence = getRunChangePinMessagesSequence(
+      emitter,
+      changePinFlow.buildWithCancelAfterPin(),
+    )
+
+    const changePinPromise = aa2NM.changePin()
+
+    // fire messages: CHANGE_PIN, INSERT_CARD, ENTER_PIN
+    runChangePinMessagesSequence.next()
+
+    await expect(changePinPromise).resolves.toEqual({
+      msg: Messages.enterPin,
+      ...makeReaderVariant(),
+    })
+
+    aa2NM.enterPin('111111')
+    // fire messages: 'INSERT_CARD'
+    runChangePinMessagesSequence.next()
+    
+    const cancelWorkflow = aa2NM.cancelFlow()
+    // fire messages: 'CHANGE_PIN' 
+    runChangePinMessagesSequence.next()
+    await expect(cancelWorkflow).resolves.toEqual({
+      msg: Messages.changePin,
+      success: false,
     })
   })
 })

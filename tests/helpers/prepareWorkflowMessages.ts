@@ -89,6 +89,25 @@ export class ChangePinWorkflowDirector {
       .makeChangePin(true)
       .getResult()
   }
+  buildWithCancel() {
+    return this.builder
+      .makeChangePin()
+      .makeInsertCard()
+      .nextSequence()
+      .makeChangePin(false)
+      .getResult()
+  }
+  buildWithCancelAfterPin() {
+    return this.builder
+      .makeChangePin()
+      .makeInsertCard()
+      .makeEnterPin()
+      .nextSequence()
+      .makeInsertCard()
+      .nextSequence()
+      .makeChangePin(false)
+      .getResult()
+  }
 }
 
 export const changePinFlow = new ChangePinWorkflowDirector(
