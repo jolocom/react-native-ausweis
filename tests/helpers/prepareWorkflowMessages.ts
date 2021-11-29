@@ -7,7 +7,7 @@ import {
   InsertCardMessage,
   Messages,
 } from '../../src/messageTypes'
-import { CardInfo } from '../../src/types'
+import { CardProps } from '../../src/types'
 import { makeReaderVariant } from './utils'
 
 export type Msg =
@@ -44,16 +44,21 @@ export class MessagesSequenceBuilder {
     this.messages.addMessage({ msg: Messages.insertCard })
     return this
   }
-  makeEnterPin(cardProps?: Record<keyof CardInfo, CardInfo[keyof CardInfo]>) {
+  makeEnterPin(cardProps?: CardProps) {
     this.messages.addMessage({
       msg: Messages.enterPin,
       ...makeReaderVariant(cardProps),
     })
     return this
   }
-  makeEnterNewPin(
-    cardProps?: Record<keyof CardInfo, CardInfo[keyof CardInfo]>,
-  ) {
+  makeEnterPuk(cardProps?: CardProps) {
+    this.messages.addMessage({
+      msg: Messages.enterPuk,
+      ...makeReaderVariant(cardProps),
+    })
+    return this
+  }
+  makeEnterNewPin(cardProps?: CardProps) {
     this.messages.addMessage({
       msg: Messages.enterNewPin,
       ...makeReaderVariant(cardProps),
