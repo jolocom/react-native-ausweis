@@ -113,6 +113,19 @@ export class ChangePinWorkflowDirector {
       .makeChangePin(false)
       .getResult()
   }
+  buildWithCardInPukState() {
+    return this.builder
+      .makeChangePin()
+      .makeInsertCard()
+      .makeEnterPuk({ retryCounter: 0 })
+      .nextSequence()
+      .makeInsertCard()
+      .makeEnterPin()
+      .nextSequence()
+      .makeInsertCard()
+      .makeChangePin(true)
+      .getResult()
+  }
 }
 
 export const changePinFlow = new ChangePinWorkflowDirector(

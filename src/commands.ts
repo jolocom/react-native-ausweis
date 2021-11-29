@@ -277,9 +277,8 @@ export const enterPinCmd = (
           case Messages.changePin:
             if (message.success === false) {
               handleChangePinCancel && handleChangePinCancel()
-              return resolve(message)
             }
-            return
+            return resolve(message)
           case Messages.enterNewPin:
             handleEnterNewPin && handleEnterNewPin()
             return resolve(message)
