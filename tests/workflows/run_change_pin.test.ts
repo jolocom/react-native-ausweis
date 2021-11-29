@@ -1,5 +1,5 @@
 import { Messages } from '../../src/messageTypes'
-import { Events } from '../../src/types'
+import { CardError, Events } from '../../src/types'
 import { changePinFlow, Msg } from '../helpers/prepareWorkflowMessages'
 import {
   emitter,
@@ -136,7 +136,7 @@ describe('Change pin workflow', () => {
     })
 
     const setPukPromise = aa2NM.enterPUK('1111111111')
-    // fire messages: CHANGE_PIN, INSERT_CARD, ENTER_PUK
+    // fire messages: INSERT_CARD, ENTER_PIN
     runChangePinMessagesSequence.next()
     await expect(setPukPromise).resolves.toEqual({
       msg: Messages.enterPin,
@@ -150,5 +150,25 @@ describe('Change pin workflow', () => {
       msg: Messages.changePin,
       success: true,
     })
+  })
+
+  test("user's card is blocked", async () => {
+    runChangePinMessagesSequence = getRunChangePinMessagesSequence(
+      emitter,
+      changePinFlow.buildWithBlockedCard(),
+    )
+
+    const changePinPromise = aa2NM.changePin()
+    // fire messages: CHANGE_PIN, INSERT_CARD, ENTER_PUK
+    runChangePinMessagesSequence.next()
+
+    await expect(changePinPromise).resolves.toEqual({
+      msg: Messages.enterPuk,
+      ...makeReaderVariant({ retryCounter: 0 }),
+    })
+    const setPukPromise = aa2NM.enterPUK('1111111111')
+    // fire messages: INSERT_CARD, CHANGE_PIN
+    runChangePinMessagesSequence.next()
+    await expect(setPukPromise).rejects.toBe(CardError.cardIsBlocked)
   })
 })

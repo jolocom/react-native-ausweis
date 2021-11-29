@@ -126,6 +126,16 @@ export class ChangePinWorkflowDirector {
       .makeChangePin(true)
       .getResult()
   }
+  buildWithBlockedCard() {
+    return this.builder
+      .makeChangePin()
+      .makeInsertCard()
+      .makeEnterPuk({ retryCounter: 0 })
+      .nextSequence()
+      .makeInsertCard()
+      .makeChangePin(false)
+      .getResult()
+  }
 }
 
 export const changePinFlow = new ChangePinWorkflowDirector(
