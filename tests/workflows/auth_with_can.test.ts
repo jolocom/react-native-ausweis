@@ -1,6 +1,6 @@
 import { Aa2Module } from '../../src/module'
 import { Events } from '../../src/types'
-import { testWorkflowData } from './../data'
+import { testWorkflowData } from '../helpers/data'
 
 const wrap = (msg: Object) => JSON.stringify({ message: JSON.stringify(msg) })
 

@@ -1,6 +1,6 @@
 import { Aa2Module } from '../src/module'
 import { Events } from '../src/types'
-import { testWorkflowData } from './data'
+import { testWorkflowData } from './helpers/data'
 
 class TestEmitter {
   private listeners: { Events?: Function } = {}
