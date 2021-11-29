@@ -171,4 +171,35 @@ describe('Change pin workflow', () => {
     runChangePinMessagesSequence.next()
     await expect(setPukPromise).rejects.toBe(CardError.cardIsBlocked)
   })
+
+  test('user provides wrong pin twice', async () => {
+    runChangePinMessagesSequence = getRunChangePinMessagesSequence(
+      emitter,
+      changePinFlow.buildWithCan(),
+    )
+
+    const changePinPromise = aa2NM.changePin()
+    // fire messages: CHANGE_PIN, INSERT_CARD, ENTER_PUK
+    runChangePinMessagesSequence.next()
+    await expect(changePinPromise).resolves.toEqual({
+      msg: Messages.enterCan,
+      ...makeReaderVariant({retryCounter: 1}),
+    })
+
+
+    const setCanPromise = aa2NM.enterCan('555555')
+    runChangePinMessagesSequence.next()
+    await expect(setCanPromise).resolves.toEqual({
+      msg: Messages.enterPin,
+      ...makeReaderVariant({retryCounter: 1})
+    })
+
+    const setPinPromise3 = aa2NM.enterPin('000000')
+    runChangePinMessagesSequence.next()
+    await expect(setPinPromise3).resolves.toEqual({
+      msg: Messages.changePin,
+      success: true
+    })
+
+  })
 })

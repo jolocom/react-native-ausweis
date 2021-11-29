@@ -51,6 +51,13 @@ export class MessagesSequenceBuilder {
     })
     return this
   }
+  makeEnterCan(cardProps?: CardProps) {
+    this.messages.addMessage({
+      msg: Messages.enterCan,
+      ...makeReaderVariant(cardProps),
+    })
+    return this
+  }
   makeEnterPuk(cardProps?: CardProps) {
     this.messages.addMessage({
       msg: Messages.enterPuk,
@@ -134,6 +141,19 @@ export class ChangePinWorkflowDirector {
       .nextSequence()
       .makeInsertCard()
       .makeChangePin(false)
+      .getResult()
+  }
+  buildWithCan() {
+    return this.builder
+      .makeChangePin()
+      .makeInsertCard()
+      .makeEnterCan({retryCounter: 1})
+      .nextSequence()
+      .makeInsertCard()
+      .makeEnterPin({retryCounter: 1})
+      .nextSequence()
+      .makeInsertCard()
+      .makeChangePin(true)
       .getResult()
   }
 }
