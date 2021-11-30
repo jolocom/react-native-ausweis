@@ -1,99 +1,94 @@
 import { Messages } from '../../src/messageTypes'
-import { CardError, Events } from '../../src/types'
-import { changePinFlow, Msg } from '../helpers/prepareWorkflowMessages'
-import {
-  emitter,
-  initializaAA2NM,
-  makeReaderVariant,
-  stringifyMessage,
-  TestEmitter,
-} from '../helpers/utils'
-
-function* getRunChangePinMessagesSequence(
-  emitter: TestEmitter,
-  msgSequences: Msg[][],
-) {
-  for (const sequence of msgSequences) {
-    /**
-     * dispatch all the messages in a sequence and
-     * stop execution until next .next() will be called
-     */
-    for (const msg of sequence) {
-      emitter.dispatch(Events.message, stringifyMessage(msg))
-    }
-    yield
-  }
-}
+import { CardError } from '../../src/types'
+import { changePinFlow } from '../helpers/prepareWorkflowMessages'
+import { getMessagesSequenceRunner } from '../helpers/sequencesRunner'
+import { emitter, initializaAA2NM, makeReaderVariant } from '../helpers/utils'
 
 describe('Change pin workflow', () => {
   let aa2NM = undefined
-  let runChangePinMessagesSequence = undefined
+  let messagesSequenceRunner = undefined
 
   beforeAll(async () => {
     aa2NM = await initializaAA2NM()
   })
-  afterEach(() => {
-    runChangePinMessagesSequence = undefined
-  })
 
   test('user completes the workflow', async () => {
-    runChangePinMessagesSequence = getRunChangePinMessagesSequence(
+    const mockHandleChangePinCancelFn = jest.fn()
+    const mockHandleChangePinSuccessFn = jest.fn()
+    const mockHandleEnterNewPinFn = jest.fn()
+
+    messagesSequenceRunner = getMessagesSequenceRunner(
       emitter,
       changePinFlow.buildHappyPath(),
     )
 
+    aa2NM.setHandlers({
+      handleChangePinCancel: mockHandleChangePinCancelFn,
+      handleChangePinSuccess: mockHandleChangePinSuccessFn,
+      handleEnterNewPin: mockHandleEnterNewPinFn,
+    })
+
     const changePinPromise = aa2NM.changePin()
 
     // fire messages: CHANGE_PIN, INSERT_CARD, ENTER_PIN
-    runChangePinMessagesSequence.next()
+    messagesSequenceRunner.next()
 
     await expect(changePinPromise).resolves.toEqual({
       msg: Messages.enterPin,
       ...makeReaderVariant(),
     })
+    expect(mockHandleChangePinCancelFn).toHaveBeenCalledTimes(0)
 
     const setPinPromise = aa2NM.enterPin('111111')
 
     // fire messages: INSERT_CARD, ENTER_NEW_PIN
-    runChangePinMessagesSequence.next()
+    messagesSequenceRunner.next()
 
     await expect(setPinPromise).resolves.toEqual({
       msg: Messages.enterNewPin,
       ...makeReaderVariant(),
     })
+    expect(mockHandleEnterNewPinFn).toHaveBeenCalledTimes(1)
 
     const setNewPinPromise = aa2NM.setNewPin('555555')
     // fire messages: INSERT_CARD, CHANGE_PIN
-    runChangePinMessagesSequence.next()
+    messagesSequenceRunner.next()
 
     await expect(setNewPinPromise).resolves.toEqual({
       msg: Messages.changePin,
       success: true,
     })
+    expect(mockHandleChangePinSuccessFn).toHaveBeenCalledTimes(1)
   })
 
   test('user interrupts the workflow after scanning the card is requested', async () => {
-    runChangePinMessagesSequence = getRunChangePinMessagesSequence(
+    const mockHandleChangePinCancelFn = jest.fn()
+    messagesSequenceRunner = getMessagesSequenceRunner(
       emitter,
       changePinFlow.buildWithCancel(),
     )
 
+    aa2NM.setHandlers({
+      handleChangePinCancel: mockHandleChangePinCancelFn,
+    })
+
     aa2NM.changePin()
     // fire messages: CHANGE_PIN, INSERT_CARD
-    runChangePinMessagesSequence.next()
+    messagesSequenceRunner.next()
 
     const cancelWorkflow = aa2NM.cancelFlow()
     // fire messages: CHANGE_PIN
-    runChangePinMessagesSequence.next()
+    messagesSequenceRunner.next()
 
     await expect(cancelWorkflow).resolves.toEqual({
       msg: Messages.changePin,
       success: false,
     })
+    expect(mockHandleChangePinCancelFn).toHaveBeenCalledTimes(1)
   })
 
   test('user interrupts the workflow after pin is requested', async () => {
-    runChangePinMessagesSequence = getRunChangePinMessagesSequence(
+    messagesSequenceRunner = getMessagesSequenceRunner(
       emitter,
       changePinFlow.buildWithCancelAfterPin(),
     )
@@ -101,7 +96,7 @@ describe('Change pin workflow', () => {
     const changePinPromise = aa2NM.changePin()
 
     // fire messages: CHANGE_PIN, INSERT_CARD, ENTER_PIN
-    runChangePinMessagesSequence.next()
+    messagesSequenceRunner.next()
 
     await expect(changePinPromise).resolves.toEqual({
       msg: Messages.enterPin,
@@ -110,11 +105,11 @@ describe('Change pin workflow', () => {
 
     aa2NM.enterPin('111111')
     // fire messages: 'INSERT_CARD'
-    runChangePinMessagesSequence.next()
+    messagesSequenceRunner.next()
 
     const cancelWorkflow = aa2NM.cancelFlow()
     // fire messages: 'CHANGE_PIN'
-    runChangePinMessagesSequence.next()
+    messagesSequenceRunner.next()
     await expect(cancelWorkflow).resolves.toEqual({
       msg: Messages.changePin,
       success: false,
@@ -122,13 +117,13 @@ describe('Change pin workflow', () => {
   })
 
   test('user uses card in puk state', async () => {
-    runChangePinMessagesSequence = getRunChangePinMessagesSequence(
+    messagesSequenceRunner = getMessagesSequenceRunner(
       emitter,
       changePinFlow.buildWithCardInPukState(),
     )
     const changePinPromise = aa2NM.changePin()
     // fire messages: CHANGE_PIN, INSERT_CARD, ENTER_PUK
-    runChangePinMessagesSequence.next()
+    messagesSequenceRunner.next()
 
     await expect(changePinPromise).resolves.toEqual({
       msg: Messages.enterPuk,
@@ -137,7 +132,7 @@ describe('Change pin workflow', () => {
 
     const setPukPromise = aa2NM.enterPUK('1111111111')
     // fire messages: INSERT_CARD, ENTER_PIN
-    runChangePinMessagesSequence.next()
+    messagesSequenceRunner.next()
     await expect(setPukPromise).resolves.toEqual({
       msg: Messages.enterPin,
       ...makeReaderVariant(),
@@ -145,7 +140,7 @@ describe('Change pin workflow', () => {
 
     const setPinPromise = aa2NM.enterPin('555555')
     // fire messages: INSERT_CARD, CHANGE_PIN
-    runChangePinMessagesSequence.next()
+    messagesSequenceRunner.next()
     await expect(setPinPromise).resolves.toEqual({
       msg: Messages.changePin,
       success: true,
@@ -153,14 +148,14 @@ describe('Change pin workflow', () => {
   })
 
   test("user's card is blocked", async () => {
-    runChangePinMessagesSequence = getRunChangePinMessagesSequence(
+    messagesSequenceRunner = getMessagesSequenceRunner(
       emitter,
       changePinFlow.buildWithBlockedCard(),
     )
 
     const changePinPromise = aa2NM.changePin()
     // fire messages: CHANGE_PIN, INSERT_CARD, ENTER_PUK
-    runChangePinMessagesSequence.next()
+    messagesSequenceRunner.next()
 
     await expect(changePinPromise).resolves.toEqual({
       msg: Messages.enterPuk,
@@ -168,38 +163,36 @@ describe('Change pin workflow', () => {
     })
     const setPukPromise = aa2NM.enterPUK('1111111111')
     // fire messages: INSERT_CARD, CHANGE_PIN
-    runChangePinMessagesSequence.next()
+    messagesSequenceRunner.next()
     await expect(setPukPromise).rejects.toBe(CardError.cardIsBlocked)
   })
 
   test('user provides wrong pin twice', async () => {
-    runChangePinMessagesSequence = getRunChangePinMessagesSequence(
+    messagesSequenceRunner = getMessagesSequenceRunner(
       emitter,
       changePinFlow.buildWithCan(),
     )
 
     const changePinPromise = aa2NM.changePin()
     // fire messages: CHANGE_PIN, INSERT_CARD, ENTER_PUK
-    runChangePinMessagesSequence.next()
+    messagesSequenceRunner.next()
     await expect(changePinPromise).resolves.toEqual({
       msg: Messages.enterCan,
-      ...makeReaderVariant({retryCounter: 1}),
+      ...makeReaderVariant({ retryCounter: 1 }),
     })
 
-
     const setCanPromise = aa2NM.enterCan('555555')
-    runChangePinMessagesSequence.next()
+    messagesSequenceRunner.next()
     await expect(setCanPromise).resolves.toEqual({
       msg: Messages.enterPin,
-      ...makeReaderVariant({retryCounter: 1})
+      ...makeReaderVariant({ retryCounter: 1 }),
     })
 
     const setPinPromise3 = aa2NM.enterPin('000000')
-    runChangePinMessagesSequence.next()
+    messagesSequenceRunner.next()
     await expect(setPinPromise3).resolves.toEqual({
       msg: Messages.changePin,
-      success: true
+      success: true,
     })
-
   })
 })
