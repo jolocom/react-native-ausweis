@@ -1,4 +1,7 @@
 import {
+  AccessRightsMessage,
+  AuthMessage,
+  CertificateMessage,
   ChangePinMessage,
   EnterCanMessage,
   EnterNewPinMessage,
@@ -8,6 +11,7 @@ import {
   Messages,
 } from '../../src/messageTypes'
 import { CardProps } from '../../src/types'
+import { mockedAccessRightMessage, mockedCertificatesMessage } from './mockedMessages'
 import { makeReaderVariant } from './utils'
 
 export type Msg =
@@ -17,6 +21,9 @@ export type Msg =
   | EnterCanMessage
   | ChangePinMessage
   | InsertCardMessage
+  | AuthMessage
+  | AccessRightsMessage
+  | CertificateMessage
 
 class MessagesSequence {
   public result: Msg[][] = [[]]
@@ -38,6 +45,23 @@ export class MessagesSequenceBuilder {
   }
   makeChangePin(success?: boolean) {
     this.messages.addMessage({ msg: Messages.changePin, success })
+    return this
+  }
+  makeAuth(authProps?: Omit<AuthMessage, 'msg'>) {
+    this.messages.addMessage({
+      msg: Messages.auth,
+      ...(authProps !== undefined && { ...authProps }),
+    })
+    return this
+  }
+  makeAccessRights() {
+    // @ts-expect-error
+    this.messages.addMessage(mockedAccessRightMessage)
+    return this
+  }
+  makeCertificate() {
+    // @ts-expect-error
+    this.messages.addMessage(mockedCertificatesMessage)
     return this
   }
   makeInsertCard() {
@@ -147,10 +171,10 @@ export class ChangePinWorkflowDirector {
     return this.builder
       .makeChangePin()
       .makeInsertCard()
-      .makeEnterCan({retryCounter: 1})
+      .makeEnterCan({ retryCounter: 1 })
       .nextSequence()
       .makeInsertCard()
-      .makeEnterPin({retryCounter: 1})
+      .makeEnterPin({ retryCounter: 1 })
       .nextSequence()
       .makeInsertCard()
       .makeChangePin(true)
@@ -161,3 +185,47 @@ export class ChangePinWorkflowDirector {
 export const changePinFlow = new ChangePinWorkflowDirector(
   new MessagesSequenceBuilder(),
 )
+
+export class AuthWorkflowDirector {
+  constructor(private builder: MessagesSequenceBuilder) {}
+  private buildCommonSteps() {
+    return this.builder
+      .makeAuth()
+      .makeAccessRights()
+      .nextSequence() // cmd GET_CERTIFICATE
+      .makeCertificate()
+      .nextSequence() // cmd SET_ACCESS_RIGHT
+      .makeAccessRights()
+      .nextSequence() // cmd ACCEPT
+      .makeInsertCard()
+      .makeEnterPin()
+  }
+  buildHappyPath() {
+    return this.buildCommonSteps()
+      .nextSequence() // cmd SET_PIN
+      .makeInsertCard()
+      .makeAuth({ result: { major: 'ok' }, url: 'httpK//test.de' })
+      .getResult()
+  }
+  buildWithCancel() {
+    return this.buildCommonSteps()
+      .nextSequence() // cmd SET_PIN; 1st wrong attempt
+      .makeEnterPin({ retryCounter: 2 })
+      .nextSequence() // cmd SET_PIN; 2nd wrong attempt
+      .makeInsertCard()
+      .makeEnterCan({ retryCounter: 1 })
+      .nextSequence() // cmd SET_CAN
+      .makeInsertCard()
+      .makeEnterPin({ retryCounter: 1 })
+      .nextSequence() // SET_PIN
+      .makeInsertCard()
+      .makeEnterPuk({ retryCounter: 0 })
+      .nextSequence() // cmd ENTER_PUK
+      .makeAuth({
+        result: { major: 'error', message: 'You used PUK 10 times already' },
+      })
+      .getResult()
+  }
+}
+
+export const authFlow = new AuthWorkflowDirector(new MessagesSequenceBuilder())

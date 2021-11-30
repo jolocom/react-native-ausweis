@@ -15,7 +15,7 @@ export class TestEmitter {
   }
 }
 
-const mockAa2Impl = {
+export const mockAa2Impl = {
   sendCMD: async (_: Object) => {},
   initAASdk: async () => {},
 }
@@ -25,6 +25,7 @@ export const emitter = new TestEmitter()
 export const initializaAA2NM = async () => {
   const aa2Sdk = new Aa2Module(mockAa2Impl, emitter)
   const initPromise = aa2Sdk.initAa2Sdk()
+
   emitter.dispatch(Events.sdkInitialized)
   await initPromise
   return aa2Sdk
@@ -55,7 +56,9 @@ export function makeReaderVariant(cardProps?: CardProps) {
     },
   }
   if (cardProps && Object.keys(cardProps).length) {
-    return Object.assign(defaultReaderMsg, { reader: { card: {...defaultReaderMsg.reader.card, ...cardProps} } })
+    return Object.assign(defaultReaderMsg, {
+      reader: { card: { ...defaultReaderMsg.reader.card, ...cardProps } },
+    })
   }
   return defaultReaderMsg
 }

@@ -56,11 +56,11 @@ export interface AuthMessage extends Message {
   msg: Messages.auth
   url?: string
   result?: {
-    description: string
-    language: string
+    description?: string
+    language?: string
     major: string
-    message: string
-    minor: string
+    message?: string
+    minor?: string
   }
 }
 
