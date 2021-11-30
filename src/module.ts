@@ -206,11 +206,6 @@ export class Aa2Module {
     })
   }
 
-  private abortTheFlow(command: CommandDefinition['command']) {
-    this.nativeAa2Module.sendCMD(JSON.stringify(command))
-    this.unprocessedMessages = []
-  }
-
   private onMessage(message: Message) {
     // FIXME: background handlers can't be called without a "current operation"
     const placeholderCallbacks = {

@@ -180,6 +180,26 @@ export class ChangePinWorkflowDirector {
       .makeChangePin(true)
       .getResult()
   }
+  buildForDisruptiveCmd() {
+    return this.builder
+      .makeChangePin()
+      .makeInsertCard()
+      .nextSequence()
+      .makeEnterPin()
+      .nextSequence() // CANCEL
+      .makeChangePin(false)
+      .getResult()
+  }
+  buildForQueuingCmd() {
+    return this.builder
+      .makeChangePin()
+      .makeInsertCard()
+      .nextSequence()
+      .makeEnterCan()
+      .nextSequence()
+      .makeChangePin(true)
+      .getResult()
+  }
 }
 
 export const changePinFlow = new ChangePinWorkflowDirector(
