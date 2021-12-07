@@ -120,10 +120,10 @@ export class ChangePinWorkflowDirector {
       .makeChangePin()
       .makeInsertCard()
       .makeEnterPin()
-      .nextSequence()
+      .nextSequence() // cmd SET_PIN
       .makeInsertCard()
       .makeEnterNewPin()
-      .nextSequence()
+      .nextSequence() // cmd SET_NEW_PIN
       .makeInsertCard()
       .makeChangePin(true)
       .getResult()
@@ -132,7 +132,7 @@ export class ChangePinWorkflowDirector {
     return this.builder
       .makeChangePin()
       .makeInsertCard()
-      .nextSequence()
+      .nextSequence() // cmd CANCEL
       .makeChangePin(false)
       .getResult()
   }
@@ -141,9 +141,9 @@ export class ChangePinWorkflowDirector {
       .makeChangePin()
       .makeInsertCard()
       .makeEnterPin()
-      .nextSequence()
+      .nextSequence() // cmd SET_PIN
       .makeInsertCard()
-      .nextSequence()
+      .nextSequence() // cmd CANCEL
       .makeChangePin(false)
       .getResult()
   }
@@ -152,10 +152,10 @@ export class ChangePinWorkflowDirector {
       .makeChangePin()
       .makeInsertCard()
       .makeEnterPuk({ retryCounter: 0 })
-      .nextSequence()
+      .nextSequence() // cmd SET_PUK
       .makeInsertCard()
       .makeEnterPin()
-      .nextSequence()
+      .nextSequence() // cmd SET_PIN
       .makeInsertCard()
       .makeChangePin(true)
       .getResult()
@@ -165,7 +165,7 @@ export class ChangePinWorkflowDirector {
       .makeChangePin()
       .makeInsertCard()
       .makeEnterPuk({ retryCounter: 0 })
-      .nextSequence()
+      .nextSequence() // cmd SET_PUK
       .makeInsertCard()
       .makeChangePin(false)
       .getResult()
@@ -175,10 +175,10 @@ export class ChangePinWorkflowDirector {
       .makeChangePin()
       .makeInsertCard()
       .makeEnterCan({ retryCounter: 1 })
-      .nextSequence()
+      .nextSequence() // cmd SET_CAN
       .makeInsertCard()
       .makeEnterPin({ retryCounter: 1 })
-      .nextSequence()
+      .nextSequence() // cmd SET_PIN
       .makeInsertCard()
       .makeChangePin(true)
       .getResult()
@@ -187,9 +187,10 @@ export class ChangePinWorkflowDirector {
     return this.builder
       .makeChangePin()
       .makeInsertCard()
-      .nextSequence()
+      .nextSequence() // cmd CANCEL
       .makeEnterPin()
-      .nextSequence() // CANCEL
+      // nothing is being sent here, it is for the convenience of looping through messages sequence
+      .nextSequence()
       .makeChangePin(false)
       .getResult()
   }
@@ -197,9 +198,10 @@ export class ChangePinWorkflowDirector {
     return this.builder
       .makeChangePin()
       .makeInsertCard()
-      .nextSequence()
+      .nextSequence() // cmd SET_PIN 
       .makeEnterCan()
-      .nextSequence()
+      // nothing is being sent here, it is for the convenience of looping through messages sequence
+      .nextSequence() 
       .makeChangePin(true)
       .getResult()
   }
