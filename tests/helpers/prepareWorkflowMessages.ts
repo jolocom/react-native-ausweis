@@ -190,26 +190,30 @@ export class ChangePinWorkflowDirector {
       .getResult()
   }
   buildForDisruptiveCmd() {
-    return this.builder
-      .makeChangePin()
-      .makeInsertCard()
-      .nextSequence() // cmd CANCEL
-      .makeEnterPin()
-      // nothing is being sent here, it is for the convenience of looping through messages sequence
-      .nextSequence()
-      .makeChangePin(false)
-      .getResult()
+    return (
+      this.builder
+        .makeChangePin()
+        .makeInsertCard()
+        .nextSequence() // cmd CANCEL
+        .makeEnterPin()
+        // nothing is being sent here, it is for the convenience of looping through messages sequence
+        .nextSequence()
+        .makeChangePin(false)
+        .getResult()
+    )
   }
   buildForQueuingCmd() {
-    return this.builder
-      .makeChangePin()
-      .makeInsertCard()
-      .nextSequence() // cmd SET_PIN 
-      .makeEnterCan()
-      // nothing is being sent here, it is for the convenience of looping through messages sequence
-      .nextSequence() 
-      .makeEnterPin()
-      .getResult()
+    return (
+      this.builder
+        .makeChangePin()
+        .makeInsertCard()
+        .nextSequence() // cmd SET_PIN
+        .makeEnterCan()
+        // nothing is being sent here, it is for the convenience of looping through messages sequence
+        .nextSequence()
+        .makeEnterPin()
+        .getResult()
+    )
   }
 }
 

@@ -100,7 +100,7 @@ describe('AA2 SDK', () => {
       messagesSequenceRunner.next()
       await expect(setPinPromise).resolves.toEqual({
         msg: Messages.enterPin,
-        ...makeReaderVariant()
+        ...makeReaderVariant(),
       })
     })
   })

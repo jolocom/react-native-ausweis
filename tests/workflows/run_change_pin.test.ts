@@ -143,7 +143,7 @@ describe('Change pin workflow', () => {
     messagesSequenceRunner.next()
     await expect(setPinPromise).resolves.toEqual({
       msg: Messages.enterNewPin,
-      ...makeReaderVariant()
+      ...makeReaderVariant(),
     })
 
     const setNewPinPromise = aa2NM.setNewPin('555555')
@@ -199,7 +199,7 @@ describe('Change pin workflow', () => {
     messagesSequenceRunner.next()
     await expect(setPinPromise3).resolves.toEqual({
       msg: Messages.enterNewPin,
-      ...makeReaderVariant()
+      ...makeReaderVariant(),
     })
 
     const setNewPin = aa2NM.setNewPin('555555')
