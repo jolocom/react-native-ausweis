@@ -94,8 +94,8 @@ describe('AA2 SDK', () => {
       // next cmd in the queue should be fired (aa2NM.enterPin('111111'))
       messagesSequenceRunner.next()
       await expect(setPinPromise).resolves.toEqual({
-        msg: Messages.changePin,
-        success: true,
+        msg: Messages.enterPin,
+        ...makeReaderVariant()
       })
     })
   })

@@ -142,6 +142,13 @@ describe('Change pin workflow', () => {
     // fire messages: INSERT_CARD, CHANGE_PIN
     messagesSequenceRunner.next()
     await expect(setPinPromise).resolves.toEqual({
+      msg: Messages.enterNewPin,
+      ...makeReaderVariant()
+    })
+
+    const setNewPinPromise = aa2NM.setNewPin('555555')
+    messagesSequenceRunner.next()
+    await expect(setNewPinPromise).resolves.toEqual({
       msg: Messages.changePin,
       success: true,
     })
@@ -191,6 +198,13 @@ describe('Change pin workflow', () => {
     const setPinPromise3 = aa2NM.enterPin('000000')
     messagesSequenceRunner.next()
     await expect(setPinPromise3).resolves.toEqual({
+      msg: Messages.enterNewPin,
+      ...makeReaderVariant()
+    })
+
+    const setNewPin = aa2NM.setNewPin('555555')
+    messagesSequenceRunner.next()
+    await expect(setNewPin).resolves.toEqual({
       msg: Messages.changePin,
       success: true,
     })
