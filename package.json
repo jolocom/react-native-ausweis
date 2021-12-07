@@ -1,8 +1,7 @@
 {
-  "name": "react-native-aa2-sdk",
-  "title": "React Native Aa2 Sdk",
-  "version": "1.0.6",
-  "description": "TODO",
+  "name": "react-native-ausweis",
+  "version": "1.0.0",
+  "description": "React Native module for AusweisApp2",
   "main": "./js/index.js",
   "files": [
     "README.md",
@@ -14,6 +13,7 @@
   "scripts": {
     "build": "tsc -p ./tsconfig.json",
     "clean": "rm -rf ./node_modules; rm -rf ./js",
+    "prepare": "yarn build",
     "test": "jest --verbose"
   },
   "repository": {
@@ -22,11 +22,15 @@
     "baseUrl": "https://github.com/github_account/react-native-aa2-sdk"
   },
   "keywords": [
-    "react-native"
+    "Ausweis",
+    "AusweisApp",
+    "React Native AusweisApp",
+    "eID",
+    "Jolocom"
   ],
   "author": {
-    "name": "Your Name",
-    "email": "yourname@email.com"
+    "name": "Jolocom",
+    "email": "hello@jolocom.com"
   },
   "license": "MIT",
   "licenseFilename": "LICENSE",
