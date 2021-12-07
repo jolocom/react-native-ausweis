@@ -178,6 +178,12 @@ export class Aa2Module {
         return reject(new SdkNotInitializedError())
       }
       if (!this.currentOperation || disruptiveCommands.includes(command.cmd)) {
+      /**
+       * TODO @sbub
+       * make sure to handle promise with either resolve or reject rather than 
+       * just overwriting current operation
+       */
+
         this.currentOperation = {
           command,
           handler,

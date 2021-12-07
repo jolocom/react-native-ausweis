@@ -64,6 +64,11 @@ describe('AA2 SDK', () => {
       // here we receive ENTER_PIN msg that should resolve changePinPromise;
       // however it was already overwritten by CANCEL cmd
       messagesSequenceRunner.next()
+      /**
+       * TODO @sbub
+       * make sure to handle promise with either resolve or reject rather than
+       * just overwriting current operation
+       */
       changePinPromise.catch((e) => {
         expect(e).toMatch(/Exceeded timeout/)
       })
