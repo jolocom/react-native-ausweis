@@ -10,8 +10,11 @@ import {
   InsertCardMessage,
   Messages,
 } from '../../src/messageTypes'
-import { CardProps } from '../../src/types'
-import { mockedAccessRightMessage, mockedCertificatesMessage } from './mockedMessages'
+import { CardInfo } from '../../src/types'
+import {
+  mockedAccessRightMessage,
+  mockedCertificatesMessage,
+} from './mockedMessages'
 import { makeReaderVariant } from './utils'
 
 export type Msg =
@@ -68,28 +71,28 @@ export class MessagesSequenceBuilder {
     this.messages.addMessage({ msg: Messages.insertCard })
     return this
   }
-  makeEnterPin(cardProps?: CardProps) {
+  makeEnterPin(cardProps?: Partial<CardInfo>) {
     this.messages.addMessage({
       msg: Messages.enterPin,
       ...makeReaderVariant(cardProps),
     })
     return this
   }
-  makeEnterCan(cardProps?: CardProps) {
+  makeEnterCan(cardProps?: Partial<CardInfo>) {
     this.messages.addMessage({
       msg: Messages.enterCan,
       ...makeReaderVariant(cardProps),
     })
     return this
   }
-  makeEnterPuk(cardProps?: CardProps) {
+  makeEnterPuk(cardProps?: Partial<CardInfo>) {
     this.messages.addMessage({
       msg: Messages.enterPuk,
       ...makeReaderVariant(cardProps),
     })
     return this
   }
-  makeEnterNewPin(cardProps?: CardProps) {
+  makeEnterNewPin(cardProps?: Partial<CardInfo>) {
     this.messages.addMessage({
       msg: Messages.enterNewPin,
       ...makeReaderVariant(cardProps),

@@ -1,5 +1,5 @@
 import { Aa2Module } from '../../src/module'
-import { CardProps, Events } from '../../src/types'
+import { CardInfo, Events } from '../../src/types'
 
 export class TestEmitter {
   private listeners: { Events?: Function } = {}
@@ -42,7 +42,7 @@ export const stringifyMessage = (msg: Object) =>
  * i.e. ENTER_PIN; some tests require variations of
  * card properties to test different use cases
  */
-export function makeReaderVariant(cardProps?: CardProps) {
+export function makeReaderVariant(cardProps?: Partial<CardInfo>) {
   const defaultReaderMsg = {
     reader: {
       attached: true,

@@ -65,7 +65,3 @@ export type AccessRights = {
 export enum CardError {
   cardIsBlocked = 'cardIsBlocked',
 }
-
-export type CardProps = Partial<
-  Record<keyof CardInfo, CardInfo[keyof CardInfo]>
->
