@@ -279,7 +279,7 @@ export const enterPinCmd = (
               handleChangePinCancel && handleChangePinCancel()
               return resolve(message)
             }
-            return
+            return 
           case Messages.enterNewPin:
             handleEnterNewPin && handleEnterNewPin()
             return resolve(message)

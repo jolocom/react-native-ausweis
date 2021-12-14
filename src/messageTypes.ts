@@ -56,11 +56,11 @@ export interface AuthMessage extends Message {
   msg: Messages.auth
   url?: string
   result?: {
-    description: string
-    language: string
+    description?: string
+    language?: string
     major: string
-    message: string
-    minor: string
+    message?: string
+    minor?: string
   }
 }
 
@@ -133,9 +133,6 @@ export interface CertificateMessage extends Message {
   validity: CertificateValidity
 }
 
-export interface ReaderMessage extends Message {
+export interface ReaderMessage extends Message, ReaderInfo {
   msg: Messages.reader
-  attached: boolean
-  keypad: boolean
-  card: CardInfo
 }
