@@ -6,7 +6,7 @@ A react-native module for the AusweisApp2 SDK. To learn more about AusweisApp2 s
 The communication with the AusweisApp2 SDK is facillitated by messages and commands. Please refer to AusweisApp2 documentation for the explanation of the [commands](https://www.ausweisapp.bund.de/sdk/commands.html) and [messages](https://www.ausweisapp.bund.de/sdk/messages.html). Furthermore, you can make use of the [example workflows](https://www.ausweisapp.bund.de/sdk/workflow.html) from the documentation, which demonstrate the exchange of commands and messages in different contexts. Currently, only two workflows are supported - `AUTH` and `CHANGE_PIN`.
 
 ## Terminology
-**Module** - React-Native module to support that wraps around the AusweisApp2 SDK
+**Module** - React-Native module that wraps around the AusweisApp2 SDK
 
 **SDK** - AusweisApp2 core functionality that is used in this module 
 
