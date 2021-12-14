@@ -159,7 +159,7 @@ await aa2Module.processRequest(tcTokenUrl) // send RUN_AUTH cmd
 ```
 
 ### `changePin`
-To initiate the `CHANGE_PIN` workflow, the module sends the `RUN_CHANGE_PIN` command. As a response, the SDK will send the `CHANGE_PIN` message if the workflow was interrupted (i.e. by canceling NFC popup on iOS), or the `ENTER_PIN`/`ENTER_CAN`/`ENTER_PUK` messages if the workflow continues. 
+To initiate the `CHANGE_PIN` workflow, the module sends the `RUN_CHANGE_PIN` command. As a response, the SDK will send the `CHANGE_PIN` message with payload: `{success: false}` if the workflow was interrupted (i.e. by canceling NFC popup on iOS), or the `ENTER_PIN`/`ENTER_CAN`/`ENTER_PUK` messages if the workflow continues. 
 
 Initiate the `CHANGE_PIN` workflow
 
