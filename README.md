@@ -311,9 +311,9 @@ await aa2Module.enterCan('123456')
 
 ## `enterPUK`
 As a response to the `ENTER_PUK` message, the module should send the `SET_PUK` command. Afterwards, the SDK can send the `ENTER_PIN` message (if the provided PUK was correct), `ENTER_PUK` (if the provided PUK was incorrect), `AUTH` (if the `AUTH` workflow was interrupted), `CHANGE_PIN` (if CHANGE_PIN workflow was interrupted).
-> Note `handleChangePinCancel` and `handleAuthFailed` will not be called when rejection happens 🥵
+> Note in case the card is blocked, the module will reject with `CardError.cardIsBlocked` error and `handleChangePinCancel` and `handleAuthFailed` will not be called
 
-If the user has a blocked card (used the PUK correctly 10 times) and tries to provide the PUK within the CHANGE_PIN workflow.
+Below is an example of an attempt to provide the PUK within the CHANGE_PIN workflow but user's card is blocked (used the PUK correctly 10 times).
 > Note, that the same sequence of messages received will happen if user presses "cancel" on NFC popup on iOS
 ```javascript
 aa2Module.setHandlers({
