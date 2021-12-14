@@ -249,6 +249,15 @@ aa2Module.setHandlers({
   },
 })
 await aa2Module.enterPin('123456') 
+
+// Sequence of events happening: 
+// 1. handlers are registered with aa2Module.setHandlers
+// 2. sending command aa2Module.enterPin
+// 3. a message is send { msg: "INSERT_CARD" } 
+// 4. INSERT_CARD handler runs: console.log('show NFC popup on Android')
+// 3. user scans eID card
+// 4. a message is send { msg: "ENTER_PIN" } and aa2Module.enterPin promise is resolved
+// 5. ENTER-PIN handler runs: console.log('showing pin again, because wrong pin was entered')
 ```
 
 Below is the example of interrupting the CHANGE_PIN workflow at the step when the eID pin was requested.
