@@ -1,5 +1,5 @@
 {
-  "name": "react-native-ausweis",
+  "name": "@jolocom/react-native-ausweis",
   "version": "1.0.0",
   "description": "React Native module for AusweisApp2",
   "main": "./js/index.js",
