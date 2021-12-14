@@ -18,8 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/github_account/react-native-aa2-sdk.git",
-    "baseUrl": "https://github.com/github_account/react-native-aa2-sdk"
+    "url": "https://github.com/jolocom/react-native-ausweis.git"
   },
   "keywords": [
     "Ausweis",
