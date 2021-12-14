@@ -3,7 +3,7 @@
 ## **Description**
 A react-native module for the AusweisApp2 SDK. To learn more about AusweisApp2 sdk please refer to its [documentation](https://www.ausweisapp.bund.de/sdk/intro.html).
 
-The communication with the AusweisApp2 SDK is facillitated by messages and commands. Please refer to AusweisApp2 documentation for the explanation of the [commands](https://www.ausweisapp.bund.de/sdk/commands.html) and [messages](https://www.ausweisapp.bund.de/sdk/messages.html). Furthermore, you can make use of the [example workflows](https://www.ausweisapp.bund.de/sdk/workflow.html) from the documentation, which demonstrate the exchange of commands and messages in different contexts. Currently, only two workflows are supported, `AUTH` and `CHANGE_PIN`.
+The communication with the AusweisApp2 SDK is facillitated by messages and commands. Please refer to AusweisApp2 documentation for the explanation of the [commands](https://www.ausweisapp.bund.de/sdk/commands.html) and [messages](https://www.ausweisapp.bund.de/sdk/messages.html). Furthermore, you can make use of the [example workflows](https://www.ausweisapp.bund.de/sdk/workflow.html) from the documentation, which demonstrate the exchange of commands and messages in different contexts. Currently, only two workflows are supported - `AUTH` and `CHANGE_PIN`.
 
 ## Terminology
 **Module** - React-Native module to support that wraps around the AusweisApp2 SDK
@@ -229,7 +229,7 @@ await aa2Module.acceptAuthRequest()
 ```
 
 ### `enterPin`
-As a response to the `ENTER_PIN` message, the module should send the `SET_PIN` command (using the `enterPin` method). Afterwards, the SDK can send `ENTER_PIN` (if the PIN provided doesn't match the one stored on the eID card), `ENTER_CAN` (if the wrong eID PIN was entered 2 times), `ENTER_PUK` (if the wrong eID PIN was entered 3 times), `ENTER_NEW_PIN` (if the corect PIN was entered during the `CHANGE_PIN` workflow), `AUTH` (if the `AUTH` workflow was successfully finished), `CHANGE_PIN` (if the `CHANGE_PIN` workflow was finished). The `enterPin` Promise will be resolved with the `ENTER_PIN`/`ENTER_CAN`/`ENTER_PUK`/`AUTH`/`CHANGE_PIN` messages.
+As a response to the `ENTER_PIN` message, the module should send the `SET_PIN` command (using the `enterPin` method). Afterwards, the SDK can send `ENTER_PIN` (if the PIN provided doesn't match the one stored on the eID card), `ENTER_CAN` (if the wrong eID PIN was entered 2 times), `ENTER_PUK` (if the wrong eID PIN was entered 3 times), `ENTER_NEW_PIN` (if the corect PIN was entered during the `CHANGE_PIN` workflow), `AUTH` (if the `AUTH` workflow was successfully finished), `CHANGE_PIN` (if the `CHANGE_PIN` workflow was finished).
 
 Below is an example of handlers for processing both the wrong PIN and the successful completion of the `AUTH` workflow.
 
