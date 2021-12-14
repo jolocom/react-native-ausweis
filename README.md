@@ -1,4 +1,4 @@
-# react-native-ausweis
+# @jolocom/react-native-ausweis
 
 ## **Description**
 A react-native module for the AusweisApp2 SDK. To learn more about AusweisApp2 sdk please refer to its [documentation](https://www.ausweisapp.bund.de/sdk/intro.html).
@@ -14,7 +14,7 @@ The communication with the AusweisApp2 SDK is facillitated by messages and comma
 ## **Getting started**
 
   ### **Installation**
-  `$ yarn add react-native-ausweis`
+  `$ yarn add @jolocom/react-native-ausweis`
 
   ### **iOS specific**
   1. Enable the card identifier in your applications `Info.plist`. For more details refer to the [AusweisApp documentation](#https://www.ausweisapp.bund.de/sdk/ios.html)
@@ -44,7 +44,7 @@ The communication with the AusweisApp2 SDK is facillitated by messages and comma
   ### **Automatic linking** 
   (for react-native with version < 0.60.0)
 
-  `$ react-native link react-native-ausweis`
+  `$ react-native link @jolocom/react-native-ausweis`
   
 ---
 ## **Usage**
@@ -53,7 +53,7 @@ The communication with the AusweisApp2 SDK is facillitated by messages and comma
 To start interacting with the SDK, you first need to initialize it
 
 ```javascript
-import { aa2Module } from 'react-native-ausweis'
+import { aa2Module } from '@jolocom/react-native-ausweis'
 
 if (!aa2Module.isInitialized) {
   try {
