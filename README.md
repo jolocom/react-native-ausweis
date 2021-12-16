@@ -148,17 +148,17 @@ In order to communicate with the SDK, the React-Native application must send com
 Nevertheless, messages can also be handled using the handlers registered with `aa2Module.setHandlers(${handlers})`. [Here](#handlers) is the list of available message handlers.
 
 
-### `processRequest`
+### `startAuth`
 To initiate the `AUTH` workflow, the module sends the `RUN_AUTH` command. As a response, the SDK sends both `AUTH` and `ACCESS_RIGHTS` messages. 
-The `processRequest` Promise will be resolved as soon as the `ACCESS_RIGHTS` message is received.
+The `startAuth` Promise will be resolved as soon as the `ACCESS_RIGHTS` message is received.
 
 ```javascript
 const tcTokenUrl = "https://test.governikus-eid.de/DEMO"
-await aa2Module.processRequest(tcTokenUrl) // send RUN_AUTH cmd
+await aa2Module.startAuth(tcTokenUrl) // send RUN_AUTH cmd
 
 ```
 
-### `changePin`
+### `startChangePin`
 To initiate the `CHANGE_PIN` workflow, the module sends the `RUN_CHANGE_PIN` command. As a response, the SDK will send the `CHANGE_PIN` message with payload: `{success: false}` if the workflow was interrupted (i.e. by canceling NFC popup on iOS), or the `ENTER_PIN`/`ENTER_CAN`/`ENTER_PUK` messages if the workflow continues. 
 
 Initiate the `CHANGE_PIN` workflow
@@ -173,19 +173,19 @@ aa2Module.setHandlers({
   }
 })
 
-const message = await aa2Module.changePin()
+const message = await aa2Module.startChangePin()
 
 // Sequence of events happening: 
 // 1. handler is registered with aa2Module.setHandlers
-// 2. sending command aa2Module.changePin
+// 2. sending command aa2Module.startChangePin
 // 3. a message is send { msg: "INSERT_CARD" } 
 // 4. INSERT_CARD handler runs: console.log('show NFC popup on Android')
 // 3. user scans eID card
-// 4. a message is send { msg: "ENTER_PIN" } and aa2Module.changePin promise is resolved
+// 4. a message is send { msg: "ENTER_PIN" } and aa2Module.startChangePin promise is resolved
 ```
 
 ### `getCertificate`
-> Note this command is part of the [AUTH flow](#processRequest) and should be sent only after AUTH workflow was initiated with `aa2Module.processRequest(tcTokenUrl)` 
+> Note this command is part of the [AUTH flow](#startAuth) and should be sent only after AUTH workflow was initiated with `aa2Module.startAuth(tcTokenUrl)` 
 
 To get more information about the requester, send the `GET_CERTIFICATE` command. As a result, it will be resolved with the `CERTIFICATE` message.
 
@@ -194,7 +194,7 @@ await aa2Module.getCertificate() // send GET_CERTIFICATE cmd
 ```
 
 ### `setAccessRights`
-> Note this command is part of the [AUTH flow](#processRequest) and should be sent only after AUTH workflow was initiated with `aa2Module.processRequest(tcTokenUrl)` 
+> Note this command is part of the [AUTH flow](#startAuth) and should be sent only after AUTH workflow was initiated with `aa2Module.startAuth(tcTokenUrl)` 
 
 To select which data should be shared within the `AUTH` workflow, the `SET_ACCESS_RIGHTS` command is sent together with the choosen fields. As a response, the SDK will send the `ACCESS_RIGHTS` message.
 
@@ -204,7 +204,7 @@ await aa2Module.setAccessRights(optionalFields) // send GET_CERTIFICATE cmd
 ```
 
 ### `acceptAuthRequest`
-> Note this command is part of the [AUTH flow](#processRequest) and should be sent only after AUTH workflow was initiated with `aa2Module.processRequest(tcTokenUrl)` 
+> Note this command is part of the [AUTH flow](#startAuth) and should be sent only after AUTH workflow was initiated with `aa2Module.startAuth(tcTokenUrl)` 
 
 
 To accept the selected access rights, the SDK sends the "ACCEPT" command. As a response, the SDK will send `INSERT_CARD` message. If user has scanned eID card successfully, the commands will be resolved with the `ENTER_PIN`/`ENTER_CAN`/`ENTER_PUK` messages. If user has cancelled the NFC popup, an `AUTH` message will be sent. 
@@ -228,8 +228,8 @@ await aa2Module.acceptAuthRequest()
 // 4. a message is send { msg: "ENTER_PIN" } and aa2Module.acceptAuthRequest promise is resolved
 ```
 
-### `enterPin`
-As a response to the `ENTER_PIN` message, the module should send the `SET_PIN` command (using the `enterPin` method). Afterwards, the SDK can send `ENTER_PIN` (if the PIN provided doesn't match the one stored on the eID card), `ENTER_CAN` (if the wrong eID PIN was entered 2 times), `ENTER_PUK` (if the wrong eID PIN was entered 3 times), `ENTER_NEW_PIN` (if the corect PIN was entered during the `CHANGE_PIN` workflow), `AUTH` (if the `AUTH` workflow was successfully finished), `CHANGE_PIN` (if the `CHANGE_PIN` workflow was finished).
+### `setPin`
+As a response to the `ENTER_PIN` message, the module should send the `SET_PIN` command (using the `setPin` method). Afterwards, the SDK can send `ENTER_PIN` (if the PIN provided doesn't match the one stored on the eID card), `ENTER_CAN` (if the wrong eID PIN was entered 2 times), `ENTER_PUK` (if the wrong eID PIN was entered 3 times), `ENTER_NEW_PIN` (if the corect PIN was entered during the `CHANGE_PIN` workflow), `AUTH` (if the `AUTH` workflow was successfully finished), `CHANGE_PIN` (if the `CHANGE_PIN` workflow was finished).
 
 Below is an example of handlers for processing both the wrong PIN and the successful completion of the `AUTH` workflow.
 
@@ -248,15 +248,15 @@ aa2Module.setHandlers({
     fetch(url)
   },
 })
-await aa2Module.enterPin('123456') 
+await aa2Module.setPin('123456') 
 
 // Sequence of events happening: 
 // 1. handlers are registered with aa2Module.setHandlers
-// 2. sending command aa2Module.enterPin
+// 2. sending command aa2Module.setPin
 // 3. a message is send { msg: "INSERT_CARD" } 
 // 4. INSERT_CARD handler runs: console.log('show NFC popup on Android')
 // 3. user scans eID card
-// 4. a message is send { msg: "ENTER_PIN" } and aa2Module.enterPin promise is resolved
+// 4. a message is send { msg: "ENTER_PIN" } and aa2Module.setPin promise is resolved
 // 5. ENTER-PIN handler runs: console.log('showing pin again, because wrong pin was entered')
 ```
 
@@ -271,19 +271,19 @@ aa2Module.setHandlers({
     console.log('CHANGE_PIN workflow was interrupted')
   },
 })
-await aa2Module.enterPin('123456')
+await aa2Module.setPin('123456')
 
 // Sequence of events happening: 
 // 1. handlers are registered with aa2Module.setHandlers
-// 2. sending command aa2Module.enterPin
+// 2. sending command aa2Module.setPin
 // 3. a message is send { msg: "INSERT_CARD" } 
 // 4. INSERT_CARD handler runs: console.log('NFC popup is shown on iOS')
 // 3. user presses "cancel" btn on NFC popup
-// 4. a message is send { msg: "CHANGE_PIN", .success: false } and aa2Module.enterPin promise is resolved
+// 4. a message is send { msg: "CHANGE_PIN", .success: false } and aa2Module.setPin promise is resolved
 // 5. handleChangePinCancel handler runs: console.log('CHANGE_PIN workflow was interrupted')
 ```
 
-### `enterCan`
+### `setCan`
 As a response to the `ENTER_CAN` message, the module should send the `SET_CAN` command. Following, the SDK responds with the `ENTER_PIN` message (if the provided CAN was correct), `ENTER_CAN` (if the provided CAN was incorrect), `AUTH` (if `AUTH` workflow was interrupted), `CHANGE_PIN` (if the `CHANGE_PIN` workflow was interrupted).
 
 Below is an example of providing the wrong CAN
@@ -296,20 +296,20 @@ aa2Module.setHandlers({
     console.log('wrong CAN')
   },
 })
-await aa2Module.enterCan('123456')
+await aa2Module.setCan('123456')
 
 // Sequence of events happening: 
 // 1. handlers are registered with aa2Module.setHandlers
-// 2. sending command aa2Module.enterCan
+// 2. sending command aa2Module.setCan
 // 3. a message is send { msg: "INSERT_CARD" } 
 // 4. INSERT_CARD handler runs: console.log('NFC popup is shown on iOS')
 // 5. user scans eID card
-// 6. a message is send { msg: "ENTER_CAN" } and aa2Module.enterPin promise is resolved
+// 6. a message is send { msg: "ENTER_CAN" } and aa2Module.setPin promise is resolved
 // 7. handleCanRequest handler runs: console.log('wrong can')
 
 ```
 
-## `enterPUK`
+## `setPuk`
 As a response to the `ENTER_PUK` message, the module should send the `SET_PUK` command. Afterwards, the SDK can send the `ENTER_PIN` message (if the provided PUK was correct), `ENTER_PUK` (if the provided PUK was incorrect), `AUTH` (if the `AUTH` workflow was interrupted), `CHANGE_PIN` (if CHANGE_PIN workflow was interrupted).
 > Note in case the card is blocked, the module will reject with `CardError.cardIsBlocked` error and `handleChangePinCancel` and `handleAuthFailed` will not be called
 
@@ -325,23 +325,23 @@ aa2Module.setHandlers({
   }
 })
 try {
-  await aa2Module.enterPUK('1234567890')
+  await aa2Module.setPuk('1234567890')
 } catch(e) {
   console.log('Error', e)
 }
 
 // Sequence of events happening: 
 // 1. handlers are registered with aa2Module.setHandlers
-// 2. sending command aa2Module.enterPUK
+// 2. sending command aa2Module.setPuk
 // 3. a message is send { msg: "INSERT_CARD" } 
 // 4. INSERT_CARD handler runs: console.log('NFC popup is shown on iOS')
 // 5. user scans eID card
-// 6. a message is send { msg: "CHANGE_PIN", success: false } and aa2Module.enterPUK promise is rejected with `CardError.cardIsBlocked`
+// 6. a message is send { msg: "CHANGE_PIN", success: false } and aa2Module.setPuk promise is rejected with `CardError.cardIsBlocked`
 // 7. handleChangePinCancel won't run !!!
 ```
 
 ## `setNewPin`
-> Note this command is part of the [CHANGE_PIN flow](#changePin) and should be sent only after the `CHANGE_PIN` workflow was initiated.
+> Note this command is part of the [CHANGE_PIN flow](#startChangePin) and should be sent only after the `CHANGE_PIN` workflow was initiated.
 
 As a response to the `ENTER_NEW_PIN` message, the module should send the `SET_NEW_PIN` command. Afterwards, the SDK will send the `CHANGE_PIN` msg with a (boolean) `success` property.
 
