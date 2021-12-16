@@ -201,19 +201,21 @@ export const enterPukCmd = (
 
 export const enterCanCmd = (
   can: string,
-): EnterCanCommand<EnterPinMessage | EnterCanMessage | ChangePinMessage> => {
+): EnterCanCommand<EnterPinMessage | EnterCanMessage | ChangePinMessage | AuthMessage> => {
   return {
     command: {
       cmd: Commands.setCan,
       value: can,
     },
     handler: {
-      canHandle: [Messages.enterPin, Messages.enterCan, Messages.changePin],
+      canHandle: [Messages.enterPin, Messages.enterCan, Messages.changePin, Messages.auth],
       handle: (message, eventHandlers, { resolve, reject }) => {
         const {
           handleCanRequest,
           handlePinRequest,
           handleChangePinCancel,
+          handleAuthFailed,
+          handleAuthSuccess
         } = eventHandlers
 
         switch (message.msg) {
@@ -223,6 +225,14 @@ export const enterCanCmd = (
               return resolve(message)
             }
             return
+          case Messages.auth:
+            if (message.result?.message) {
+              handleAuthFailed &&
+                handleAuthFailed(message.url, message.result.message)
+            } else {
+              handleAuthSuccess && handleAuthSuccess(message.url)
+            }
+            return resolve(message)
           case Messages.enterPin:
             handlePinRequest && handlePinRequest(message.reader.card)
             return resolve(message)
@@ -279,7 +289,7 @@ export const enterPinCmd = (
               handleChangePinCancel && handleChangePinCancel()
               return resolve(message)
             }
-            return
+            return 
           case Messages.enterNewPin:
             handleEnterNewPin && handleEnterNewPin()
             return resolve(message)
