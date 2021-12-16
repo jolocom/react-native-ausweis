@@ -28,18 +28,18 @@ describe('Change pin workflow', () => {
       handleEnterNewPin: mockHandleEnterNewPinFn,
     })
 
-    const changePinPromise = aa2NM.changePin()
+    const startChangePinPromise = aa2NM.startChangePin()
 
     // fire messages: CHANGE_PIN, INSERT_CARD, ENTER_PIN
     messagesSequenceRunner.next()
 
-    await expect(changePinPromise).resolves.toEqual({
+    await expect(startChangePinPromise).resolves.toEqual({
       msg: Messages.enterPin,
       ...makeReaderVariant(),
     })
     expect(mockHandleChangePinCancelFn).toHaveBeenCalledTimes(0)
 
-    const setPinPromise = aa2NM.enterPin('111111')
+    const setPinPromise = aa2NM.setPin('111111')
 
     // fire messages: INSERT_CARD, ENTER_NEW_PIN
     messagesSequenceRunner.next()
@@ -72,7 +72,7 @@ describe('Change pin workflow', () => {
       handleChangePinCancel: mockHandleChangePinCancelFn,
     })
 
-    aa2NM.changePin()
+    aa2NM.startChangePin()
     // fire messages: CHANGE_PIN, INSERT_CARD
     messagesSequenceRunner.next()
 
@@ -93,17 +93,17 @@ describe('Change pin workflow', () => {
       changePinFlow.buildWithCancelAfterPin(),
     )
 
-    const changePinPromise = aa2NM.changePin()
+    const startChangePinPromise = aa2NM.startChangePin()
 
     // fire messages: CHANGE_PIN, INSERT_CARD, ENTER_PIN
     messagesSequenceRunner.next()
 
-    await expect(changePinPromise).resolves.toEqual({
+    await expect(startChangePinPromise).resolves.toEqual({
       msg: Messages.enterPin,
       ...makeReaderVariant(),
     })
 
-    aa2NM.enterPin('111111')
+    aa2NM.setPin('111111')
     // fire messages: 'INSERT_CARD'
     messagesSequenceRunner.next()
 
@@ -121,16 +121,16 @@ describe('Change pin workflow', () => {
       emitter,
       changePinFlow.buildWithCardInPukState(),
     )
-    const changePinPromise = aa2NM.changePin()
+    const startChangePinPromise = aa2NM.startChangePin()
     // fire messages: CHANGE_PIN, INSERT_CARD, ENTER_PUK
     messagesSequenceRunner.next()
 
-    await expect(changePinPromise).resolves.toEqual({
+    await expect(startChangePinPromise).resolves.toEqual({
       msg: Messages.enterPuk,
       ...makeReaderVariant({ retryCounter: 0 }),
     })
 
-    const setPukPromise = aa2NM.enterPUK('1111111111')
+    const setPukPromise = aa2NM.setPuk('1111111111')
     // fire messages: INSERT_CARD, ENTER_PIN
     messagesSequenceRunner.next()
     await expect(setPukPromise).resolves.toEqual({
@@ -138,7 +138,7 @@ describe('Change pin workflow', () => {
       ...makeReaderVariant(),
     })
 
-    const setPinPromise = aa2NM.enterPin('555555')
+    const setPinPromise = aa2NM.setPin('555555')
     // fire messages: INSERT_CARD, CHANGE_PIN
     messagesSequenceRunner.next()
     await expect(setPinPromise).resolves.toEqual({
@@ -160,15 +160,15 @@ describe('Change pin workflow', () => {
       changePinFlow.buildWithBlockedCard(),
     )
 
-    const changePinPromise = aa2NM.changePin()
+    const startChangePinPromise = aa2NM.startChangePin()
     // fire messages: CHANGE_PIN, INSERT_CARD, ENTER_PUK
     messagesSequenceRunner.next()
 
-    await expect(changePinPromise).resolves.toEqual({
+    await expect(startChangePinPromise).resolves.toEqual({
       msg: Messages.enterPuk,
       ...makeReaderVariant({ retryCounter: 0 }),
     })
-    const setPukPromise = aa2NM.enterPUK('1111111111')
+    const setPukPromise = aa2NM.setPuk('1111111111')
     // fire messages: INSERT_CARD, CHANGE_PIN
     messagesSequenceRunner.next()
     await expect(setPukPromise).rejects.toBe(CardError.cardIsBlocked)
@@ -180,22 +180,22 @@ describe('Change pin workflow', () => {
       changePinFlow.buildWithCan(),
     )
 
-    const changePinPromise = aa2NM.changePin()
+    const startChangePinPromise = aa2NM.startChangePin()
     // fire messages: CHANGE_PIN, INSERT_CARD, ENTER_PUK
     messagesSequenceRunner.next()
-    await expect(changePinPromise).resolves.toEqual({
+    await expect(startChangePinPromise).resolves.toEqual({
       msg: Messages.enterCan,
       ...makeReaderVariant({ retryCounter: 1 }),
     })
 
-    const setCanPromise = aa2NM.enterCan('555555')
+    const setCanPromise = aa2NM.setCan('555555')
     messagesSequenceRunner.next()
     await expect(setCanPromise).resolves.toEqual({
       msg: Messages.enterPin,
       ...makeReaderVariant({ retryCounter: 1 }),
     })
 
-    const setPinPromise3 = aa2NM.enterPin('000000')
+    const setPinPromise3 = aa2NM.setPin('000000')
     messagesSequenceRunner.next()
     await expect(setPinPromise3).resolves.toEqual({
       msg: Messages.enterNewPin,

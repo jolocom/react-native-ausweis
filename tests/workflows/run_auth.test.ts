@@ -59,7 +59,7 @@ describe('Run auth workflow', () => {
       handlePinRequest: mockHandlePinRequestFn,
     })
 
-    const authPromise = aa2NM.processRequest('https://test.tstoken.de')
+    const authPromise = aa2NM.startAuth('https://test.tstoken.de')
     // fire messages: AUTH, ACCESS_RIGHTS
     messagesSequenceRunner.next()
     await expect(authPromise).resolves.toEqual(mockedAccessRightMessage)
@@ -69,7 +69,7 @@ describe('Run auth workflow', () => {
 
     expect(mockHandlePinRequestFn).toHaveBeenCalledTimes(1)
 
-    const setPinPromise = aa2NM.enterPin('111111')
+    const setPinPromise = aa2NM.setPin('111111')
     // fire messages: AUTH
     messagesSequenceRunner.next()
     await expect(setPinPromise).resolves.toEqual({
@@ -101,7 +101,7 @@ describe('Run auth workflow', () => {
       handlePukRequest: mockHandlePukRequestFn,
     })
 
-    const authPromise = aa2NM.processRequest('https://test.tstoken.de')
+    const authPromise = aa2NM.startAuth('https://test.tstoken.de')
     // fire messages: AUTH, ACCESS_RIGHTS
     messagesSequenceRunner.next()
     await authPromise
@@ -109,7 +109,7 @@ describe('Run auth workflow', () => {
     await proceedAuthUntilTheScanner(aa2NM, messagesSequenceRunner)
     expect(mockHandlePinRequestFn).toHaveBeenCalledTimes(1)
 
-    const setPinPromise1 = aa2NM.enterPin('111111')
+    const setPinPromise1 = aa2NM.setPin('111111')
     messagesSequenceRunner.next()
     await expect(setPinPromise1).resolves.toEqual({
       msg: Messages.enterPin,
@@ -117,7 +117,7 @@ describe('Run auth workflow', () => {
     })
     expect(mockHandlePinRequestFn).toHaveBeenCalledTimes(2)
 
-    const setPinPromise2 = aa2NM.enterPin('111110')
+    const setPinPromise2 = aa2NM.setPin('111110')
     messagesSequenceRunner.next()
     await expect(setPinPromise2).resolves.toEqual({
       msg: Messages.enterCan,
@@ -125,7 +125,7 @@ describe('Run auth workflow', () => {
     })
     expect(mockHandleCanRequestFn).toHaveBeenCalledTimes(1)
 
-    const setCanPromise = aa2NM.enterCan('555555')
+    const setCanPromise = aa2NM.setCan('555555')
     messagesSequenceRunner.next()
     await expect(setCanPromise).resolves.toEqual({
       msg: Messages.enterPin,
@@ -133,7 +133,7 @@ describe('Run auth workflow', () => {
     })
     expect(mockHandlePinRequestFn).toBeCalledTimes(3)
 
-    const setPinPromise3 = aa2NM.enterPin('111110')
+    const setPinPromise3 = aa2NM.setPin('111110')
     messagesSequenceRunner.next()
     await expect(setPinPromise3).resolves.toEqual({
       msg: Messages.enterPuk,
@@ -141,7 +141,7 @@ describe('Run auth workflow', () => {
     })
     expect(mockHandlePukRequestFn).toBeCalledTimes(1)
 
-    const setPukPromise = aa2NM.enterPUK()
+    const setPukPromise = aa2NM.setPuk()
     messagesSequenceRunner.next()
     await expect(setPukPromise).rejects.toBe(CardError.cardIsBlocked)
     expect(mockHandleAuthFailedFn).toBeCalledTimes(0)
