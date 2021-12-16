@@ -149,7 +149,7 @@ export class Aa2Module {
    * @see https://www.ausweisapp.bund.de/sdk/commands.html#run-auth
    */
 
-  public async processRequest(tcTokenUrl: string, config?: ScannerConfig ) {
+  public async startAuth(tcTokenUrl: string, config?: ScannerConfig) {
     return this.sendCmd(runAuthCmd(tcTokenUrl, config))
   }
 
@@ -286,17 +286,17 @@ export class Aa2Module {
   }
 
   // TODO Make sure 5 / 6 digits
-  public async enterPin(pin: string) {
+  public async setPin(pin: string) {
     return this.sendCmd(enterPinCmd(pin))
   }
 
   // TODO Make sure 6 digits
-  public async enterCan(can: string) {
+  public async setCan(can: string) {
     return this.sendCmd(enterCanCmd(can))
   }
 
   // TODO Make sure 10 digits
-  public async enterPUK(puk: string) {
+  public async setPuk(puk: string) {
     return this.sendCmd(enterPukCmd(puk))
   }
 
@@ -320,7 +320,7 @@ export class Aa2Module {
     return this.sendCmd(setNewPin(pin))
   }
 
-  public changePin(config?: ScannerConfig) {
+  public startChangePin(config?: ScannerConfig) {
     return this.sendCmd(changePinCmd(config))
   }
 }

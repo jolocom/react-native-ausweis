@@ -54,14 +54,14 @@ describe('AA2 SDK', () => {
         emitter,
         changePinFlow.buildForDisruptiveCmd(),
       )
-      const changePinPromise = aa2NM.changePin()
+      const startChangePinPromise = aa2NM.startChangePin()
       // fire just INSERT_CARD msg; because as soon as ENTER_PIN msg is
-      // send 'changePinPromise' will be resolved and currentOperation
+      // sent - 'startChangePinPromise' will be resolved and currentOperation
       // will be cleared up
       messagesSequenceRunner.next()
 
       const cancelFlowPromise = aa2NM.cancelFlow()
-      // here we receive ENTER_PIN msg that should resolve changePinPromise;
+      // here we receive ENTER_PIN msg that should resolve startChangePinPromise;
       // however it was already overwritten by CANCEL cmd
       messagesSequenceRunner.next()
       /**
@@ -69,7 +69,7 @@ describe('AA2 SDK', () => {
        * make sure to handle promise with either resolve or reject rather than
        * just overwriting current operation
        */
-      changePinPromise.catch((e) => {
+       startChangePinPromise.catch((e) => {
         expect(e).toMatch(/Exceeded timeout/)
       })
 
@@ -82,21 +82,21 @@ describe('AA2 SDK', () => {
         emitter,
         changePinFlow.buildForQueuingCmd(),
       )
-      const changePinPromise = aa2NM.changePin()
+      const startChangePinPromise = aa2NM.startChangePin()
       // fire only INSERT_CARD msg
       messagesSequenceRunner.next()
 
-      // before changePinPromise is resolved fire another cmd
-      const setPinPromise = aa2NM.enterPin('111111')
+      // before startChangePinPromise is resolved fire another cmd
+      const setPinPromise = aa2NM.setPin('111111')
       // fire ENTER_CAN msg
       messagesSequenceRunner.next()
       // change pin should have been resolved by ENTER_CAN msg
-      await expect(changePinPromise).resolves.toEqual({
+      await expect(startChangePinPromise).resolves.toEqual({
         msg: Messages.enterCan,
         ...makeReaderVariant(),
       })
 
-      // next cmd in the queue should be fired (aa2NM.enterPin('111111'))
+      // next cmd in the queue should be fired (aa2NM.setPin('111111'))
       messagesSequenceRunner.next()
       await expect(setPinPromise).resolves.toEqual({
         msg: Messages.enterPin,
