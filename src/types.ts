@@ -10,11 +10,6 @@ export enum Events {
   commandSentSuccessfully = 'onCommandSentSuccessfully',
 }
 
-export type IncorrectPinResponse = {
-  required: 'pin' | 'can' | 'puk'
-  triesLeft: number
-}
-
 export type CardInfo = {
   inoperative: boolean
   deactivated: boolean
