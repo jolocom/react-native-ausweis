@@ -1,3 +1,5 @@
+import EventEmitter from "events"
+import TypedEmitter from "typed-emitter"
 import {
   acceptAuthReqCmd,
   enterPinCmd,
@@ -19,6 +21,7 @@ import {
   HandlerDefinition,
 } from './commandTypes'
 import { SdkNotInitializedError } from './errors'
+import { MessageEvents } from "./messageEvents"
 import {
   BadStateMessage,
   EnterCanMessage,
@@ -35,7 +38,7 @@ const delay = async (delay: number) => {
   return new Promise((resolve) => setTimeout(resolve, delay))
 }
 
-interface Emitter {
+interface NativeEmitter {
   addListener: (event: Events, callback: Function) => void
 }
 
@@ -82,16 +85,17 @@ export class Aa2Module {
   ]
   private eventHandlers: Partial<EventHandlers> = {}
 
+  public messageEmitter = new EventEmitter() as TypedEmitter<MessageEvents>
   public isInitialized = false
 
-  constructor(aa2Implementation: any, eventEmitter: Emitter) {
+  constructor(aa2Implementation: any, nativeEventEmitter: NativeEmitter) {
     this.nativeAa2Module = aa2Implementation
 
-    eventEmitter.addListener(Events.sdkInitialized, () =>
+    nativeEventEmitter.addListener(Events.sdkInitialized, () =>
       this.onMessage({ msg: Messages.init }),
     )
 
-    eventEmitter.addListener(Events.message, (response: string) => {
+    nativeEventEmitter.addListener(Events.message, (response: string) => {
       const { message, error } = JSON.parse(response)
 
       if (error) {
@@ -103,7 +107,7 @@ export class Aa2Module {
       }
     })
 
-    eventEmitter.addListener(Events.error, (err) => {
+    nativeEventEmitter.addListener(Events.error, (err) => {
       const { error } = JSON.parse(err)
       this.rejectCurrentOperation(error)
     })
@@ -178,12 +182,6 @@ export class Aa2Module {
         return reject(new SdkNotInitializedError())
       }
       if (!this.currentOperation || disruptiveCommands.includes(command.cmd)) {
-      /**
-       * TODO @sbub
-       * make sure to handle promise with either resolve or reject rather than 
-       * just overwriting current operation
-       */
-
         this.currentOperation = {
           command,
           handler,
@@ -218,6 +216,8 @@ export class Aa2Module {
       resolve: () => undefined,
       reject: () => undefined,
     }
+
+    this.messageEmitter.emit(message.msg, message as any)
 
     const { handle } =
       this.handlers.find(({ canHandle }) =>
