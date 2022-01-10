@@ -14,7 +14,9 @@
     "build": "tsc -p ./tsconfig.json",
     "clean": "rm -rf ./node_modules; rm -rf ./js",
     "prepare": "yarn build",
-    "test": "jest --verbose"
+    "test": "jest --verbose",
+    "prettier:fix": "prettier src/ --write",
+    "prettier:check": "prettier src/ --check"
   },
   "repository": {
     "type": "git",
