@@ -1,5 +1,5 @@
-import EventEmitter from "events"
-import TypedEmitter from "typed-emitter"
+import EventEmitter from 'events'
+import TypedEmitter from 'typed-emitter'
 import {
   acceptAuthReqCmd,
   enterPinCmd,
@@ -21,7 +21,7 @@ import {
   HandlerDefinition,
 } from './commandTypes'
 import { SdkNotInitializedError } from './errors'
-import { MessageEvents } from "./messageEvents"
+import { MessageEvents } from './messageEvents'
 import {
   BadStateMessage,
   EnterCanMessage,
