@@ -1,6 +1,6 @@
 {
   "name": "@jolocom/react-native-ausweis",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "React Native module for AusweisApp2",
   "main": "./js/index.js",
   "files": [
