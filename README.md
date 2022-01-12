@@ -139,7 +139,15 @@ Reset handlers with:
 ```javascript
 aa2Module.resetHandlers()
 ```
-
+## Events
+Similarly to handlers, the user can subscribe to message events. An example can be seen below:
+  
+```javascript
+aa2Module.messageEmitter.addListener(Messages.reader, (message: ReaderMessage) => {
+   ...
+})
+```
+  
 ## Commands
 In order to communicate with the SDK, the React-Native application must send commands. As a result, the SDK will respond with messages according to the internal protocol. In case the received message does not satisfy the protocol, the command will reject with the `Unknown message type` error.
 
