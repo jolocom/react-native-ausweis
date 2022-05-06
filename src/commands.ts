@@ -9,6 +9,7 @@ import {
   GetCertificateCommand,
   GetInfoCommand,
   Handler,
+  HandlerDefinition,
   InitCommand,
   RunAuthCommand,
   SetAccessRightsCommand,
@@ -17,6 +18,7 @@ import {
 import {
   AccessRightsMessage,
   AuthMessage,
+  BadStateMessage,
   CertificateMessage,
   ChangePinMessage,
   EnterCanMessage,
@@ -25,9 +27,32 @@ import {
   EnterPukMessage,
   InfoMessage,
   InitMessage,
+  InsertCardMessage,
   Messages,
+  ReaderMessage,
 } from './messageTypes'
 import { AccessRightsFields, CardError, ScannerConfig } from './types'
+
+export const insertCardHandler: HandlerDefinition<InsertCardMessage> = {
+  canHandle: [Messages.insertCard],
+  handle: (_, { handleCardRequest }, __) => {
+    return handleCardRequest && handleCardRequest()
+  },
+}
+
+export const readerHandler: HandlerDefinition<ReaderMessage> = {
+  canHandle: [Messages.reader],
+  handle: (msg, { handleCardInfo }, __) => {
+    return handleCardInfo && handleCardInfo(msg.card)
+  },
+}
+
+export const badStateHandler: HandlerDefinition<BadStateMessage> = {
+  canHandle: [Messages.badState],
+  handle: (message, _, { reject }) => {
+    return reject(message.error)
+  },
+}
 
 export const initSdkCmd = (
   callback: Handler<InitMessage>,
@@ -77,7 +102,7 @@ export const runAuthCmd = (
         switch (message.msg) {
           case Messages.auth:
             if (message?.result?.message) {
-              return reject(message.result.message)
+              return reject(message.result)
             }
             return
           case Messages.accessRights:

@@ -1,4 +1,4 @@
-import { Aa2Module } from '../../src/module'
+import { AusweisModule } from '../../src/module'
 import { CardInfo, Events } from '../../src/types'
 
 export class TestEmitter {
@@ -23,7 +23,7 @@ export const mockAa2Impl = {
 export const emitter = new TestEmitter()
 
 export const initializaAA2NM = async () => {
-  const aa2Sdk = new Aa2Module(mockAa2Impl, emitter)
+  const aa2Sdk = new AusweisModule(mockAa2Impl, emitter)
   const initPromise = aa2Sdk.initAa2Sdk()
 
   emitter.dispatch(Events.sdkInitialized)
