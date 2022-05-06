@@ -1,3 +1,10 @@
+import {
+  NativeModules,
+  Platform,
+  NativeEventEmitter,
+  DeviceEventEmitter,
+} from 'react-native'
+
 import EventEmitter from 'events'
 import TypedEmitter from 'typed-emitter'
 import {
@@ -13,6 +20,9 @@ import {
   setAccessRights,
   setNewPin,
   changePinCmd,
+  insertCardHandler,
+  readerHandler,
+  badStateHandler,
 } from './commands'
 import {
   CommandDefinition,
@@ -23,48 +33,35 @@ import {
 import { SdkNotInitializedError } from './errors'
 import { MessageEvents } from './messageEvents'
 import {
-  BadStateMessage,
   EnterCanMessage,
   EnterPinMessage,
   EnterPukMessage,
-  InsertCardMessage,
   Message,
   Messages,
-  ReaderMessage,
 } from './messageTypes'
 import { Filter, Events, AccessRightsFields, ScannerConfig } from './types'
-
-const delay = async (delay: number) => {
-  return new Promise((resolve) => setTimeout(resolve, delay))
-}
+import { delay } from './utils'
 
 interface NativeEmitter {
   addListener: (event: Events, callback: Function) => void
 }
 
-const insertCardHandler: HandlerDefinition<InsertCardMessage> = {
-  canHandle: [Messages.insertCard],
-  handle: (_, { handleCardRequest }, __) => {
-    return handleCardRequest && handleCardRequest()
-  },
+interface AusweisImplementation {
+  initAASdk: () => void
+  sendCMD: (cmd: string) => void
 }
 
-const readerHandler: HandlerDefinition<ReaderMessage> = {
-  canHandle: [Messages.reader],
-  handle: (msg, { handleCardInfo }, __) => {
-    return handleCardInfo && handleCardInfo(msg.card)
-  },
+interface AusweisConstructor {
+  aa2Implementation?: AusweisImplementation
+  nativeEventEmitter?: NativeEmitter
+  logger?: boolean
 }
 
-const badStateHandler: HandlerDefinition<BadStateMessage> = {
-  canHandle: [Messages.badState],
-  handle: (message, _, { reject }) => {
-    return reject(message.error)
-  },
-}
+export class AusweisModule {
+  private nativeAa2Module: AusweisImplementation
+  private nativeEventEmitter: NativeEmitter
+  private logger: boolean
 
-export class Aa2Module {
-  private nativeAa2Module: any
   private unprocessedMessages: Message[] = []
   private currentOperation:
     | (CommandDefinition & {
@@ -88,14 +85,35 @@ export class Aa2Module {
   public messageEmitter = new EventEmitter() as TypedEmitter<MessageEvents>
   public isInitialized = false
 
-  constructor(aa2Implementation: any, nativeEventEmitter: NativeEmitter) {
-    this.nativeAa2Module = aa2Implementation
+  constructor({
+    aa2Implementation,
+    nativeEventEmitter,
+    logger = false,
+  }: AusweisConstructor) {
+    this.nativeAa2Module = aa2Implementation ?? NativeModules.Aa2Sdk
+    this.nativeEventEmitter =
+      nativeEventEmitter ??
+      Platform.select({
+        ios: new NativeEventEmitter(NativeModules.Emitter),
+        android: DeviceEventEmitter,
+      })
+    this.logger = logger
 
-    nativeEventEmitter.addListener(Events.sdkInitialized, () =>
+    this.setupEventHandlers()
+  }
+
+  private log(data: Object) {
+    if (this.logger) {
+      console.log('Ausweis Logger: ', JSON.stringify(data, null, 2))
+    }
+  }
+
+  private setupEventHandlers() {
+    this.nativeEventEmitter.addListener(Events.sdkInitialized, () =>
       this.onMessage({ msg: Messages.init }),
     )
 
-    nativeEventEmitter.addListener(Events.message, (response: string) => {
+    this.nativeEventEmitter.addListener(Events.message, (response: string) => {
       const { message, error } = JSON.parse(response)
 
       if (error) {
@@ -107,7 +125,7 @@ export class Aa2Module {
       }
     })
 
-    nativeEventEmitter.addListener(Events.error, (err) => {
+    this.nativeEventEmitter.addListener(Events.error, (err) => {
       const { error } = JSON.parse(err)
       this.rejectCurrentOperation(error)
     })
@@ -177,6 +195,8 @@ export class Aa2Module {
     command,
     handler,
   }: CommandDefinition<T>): Promise<T> {
+    this.log(command)
+
     return new Promise((resolve, reject) => {
       if (!this.isInitialized) {
         return reject(new SdkNotInitializedError())
@@ -211,6 +231,8 @@ export class Aa2Module {
   }
 
   private onMessage(message: Message) {
+    this.log(message)
+
     // FIXME: background handlers can't be called without a "current operation"
     const placeholderCallbacks = {
       resolve: () => undefined,

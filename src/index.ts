@@ -5,12 +5,14 @@ import {
   DeviceEventEmitter,
 } from 'react-native'
 
-import { Aa2Module } from './module'
-import { Events } from './types'
+import { AusweisModule } from './module'
 
 const emitter = Platform.select({
   ios: new NativeEventEmitter(NativeModules.Emitter),
   android: DeviceEventEmitter,
 })
 
-export const aa2Module = new Aa2Module(NativeModules.Aa2Sdk, emitter)
+export const aa2Module = new AusweisModule({
+  aa2Implementation: NativeModules.Aa2Sdk,
+  nativeEventEmitter: emitter,
+})
