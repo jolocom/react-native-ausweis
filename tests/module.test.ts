@@ -1,5 +1,5 @@
 import { Messages } from '../src/messageTypes'
-import { Aa2Module } from '../src/module'
+import { AusweisModule } from '../src/module'
 import { Events } from '../src/types'
 import { changePinFlow } from './helpers/prepareWorkflowMessages'
 import { getMessagesSequenceRunner } from './helpers/sequencesRunner'
@@ -12,7 +12,7 @@ import {
 
 describe('AA2 SDK', () => {
   it('handles succesfull initalization', async () => {
-    const aa2NM = new Aa2Module(mockAa2Impl, emitter)
+    const aa2NM = new AusweisModule(mockAa2Impl, emitter)
     const initPromise = aa2NM.initAa2Sdk()
 
     expect(aa2NM.isInitialized).toBe(false)
@@ -25,7 +25,7 @@ describe('AA2 SDK', () => {
   })
 
   it('throws if the AA2 SDK is already initialized', async () => {
-    const aa2NM = new Aa2Module(mockAa2Impl, emitter)
+    const aa2NM = new AusweisModule(mockAa2Impl, emitter)
     const promise = aa2NM.initAa2Sdk()
 
     emitter.dispatch(
@@ -69,7 +69,7 @@ describe('AA2 SDK', () => {
        * make sure to handle promise with either resolve or reject rather than
        * just overwriting current operation
        */
-       startChangePinPromise.catch((e) => {
+      startChangePinPromise.catch((e) => {
         expect(e).toMatch(/Exceeded timeout/)
       })
 

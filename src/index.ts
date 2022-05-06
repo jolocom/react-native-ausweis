@@ -12,7 +12,4 @@ const emitter = Platform.select({
   android: DeviceEventEmitter,
 })
 
-export const aa2Module = new AusweisModule({
-  aa2Implementation: NativeModules.Aa2Sdk,
-  nativeEventEmitter: emitter,
-})
+export const aa2Module = new AusweisModule(NativeModules.Aa2Sdk, emitter)

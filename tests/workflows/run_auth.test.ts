@@ -1,5 +1,5 @@
 import { Messages } from '../../src/messageTypes'
-import { Aa2Module } from '../../src/module'
+import { AusweisModule } from '../../src/module'
 import { AccessRightsFields, CardError } from '../../src/types'
 import {
   mockedAccessRightMessage,
@@ -10,7 +10,7 @@ import { getMessagesSequenceRunner } from '../helpers/sequencesRunner'
 import { emitter, initializaAA2NM, makeReaderVariant } from '../helpers/utils'
 
 async function proceedAuthUntilTheScanner(
-  aa2NM: Aa2Module,
+  aa2NM: AusweisModule,
   messagesSequenceRunner,
 ) {
   const certificatesPromise = aa2NM.getCertificate()

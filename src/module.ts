@@ -51,12 +51,6 @@ interface AusweisImplementation {
   sendCMD: (cmd: string) => void
 }
 
-interface AusweisConstructor {
-  aa2Implementation?: AusweisImplementation
-  nativeEventEmitter?: NativeEmitter
-  logger?: boolean
-}
-
 export class AusweisModule {
   private nativeAa2Module: AusweisImplementation
   private nativeEventEmitter: NativeEmitter
@@ -85,21 +79,17 @@ export class AusweisModule {
   public messageEmitter = new EventEmitter() as TypedEmitter<MessageEvents>
   public isInitialized = false
 
-  constructor({
-    aa2Implementation,
-    nativeEventEmitter,
-    logger = false,
-  }: AusweisConstructor) {
-    this.nativeAa2Module = aa2Implementation ?? NativeModules.Aa2Sdk
-    this.nativeEventEmitter =
-      nativeEventEmitter ??
-      Platform.select({
-        ios: new NativeEventEmitter(NativeModules.Emitter),
-        android: DeviceEventEmitter,
-      })
-    this.logger = logger
-
+  constructor(
+    aa2Implementation: AusweisImplementation,
+    nativeEventEmitter: NativeEmitter,
+  ) {
+    this.nativeAa2Module = aa2Implementation
+    this.nativeEventEmitter = nativeEventEmitter
     this.setupEventHandlers()
+  }
+
+  public enableLogger(shouldEnable: boolean) {
+    this.logger = shouldEnable
   }
 
   private log(data: Object) {
