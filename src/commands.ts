@@ -102,7 +102,7 @@ export const runAuthCmd = (
         switch (message.msg) {
           case Messages.auth:
             if (message?.result?.message) {
-              return reject(message.result.message)
+              return reject(message.result)
             }
             return
           case Messages.accessRights:
