@@ -31,20 +31,23 @@ export interface EventHandlers {
   handleChangePinSuccess: () => void
 }
 
-export type Handler<T extends Message> = (
-  message: T,
+export type Handler<T extends Message, R extends Message = T> = (
+  message: T | R,
   eventHandlers: Partial<EventHandlers>,
   callbacks: { resolve: Function; reject: Function },
-) => T | void
+) => T | R | void
 
-export type HandlerDefinition<T extends Message> = {
-  canHandle: Array<T['msg']>
-  handle: Handler<T>
+export type HandlerDefinition<T extends Message, R extends Message = T> = {
+  canHandle: Array<T['msg']> | Array<R['msg']>
+  handle: Handler<T, R>
 }
 
-export interface CommandDefinition<T extends Message = Message> {
+export interface CommandDefinition<
+  T extends Message = Message,
+  R extends Message = Message,
+> {
   command: { cmd: Commands; [x: string]: any }
-  handler: HandlerDefinition<T>
+  handler: HandlerDefinition<T, R>
 }
 
 export interface InitCommand<T extends Message> extends CommandDefinition<T> {
@@ -60,8 +63,8 @@ export interface GetInfoCommand<T extends Message>
   }
 }
 
-export interface RunAuthCommand<T extends Message>
-  extends CommandDefinition<T> {
+export interface RunAuthCommand<T extends Message, R extends Message>
+  extends CommandDefinition<T, R> {
   command: {
     cmd: Commands.runAuth
     tcTokenURL: string
@@ -70,8 +73,8 @@ export interface RunAuthCommand<T extends Message>
   }
 }
 
-export interface ChangePinCommand<T extends Message>
-  extends CommandDefinition<T> {
+export interface ChangePinCommand<T extends Message, R extends Message>
+  extends CommandDefinition<T, R> {
   command: {
     cmd: Commands.runChangePin
     handleInterrupt: boolean
@@ -79,31 +82,32 @@ export interface ChangePinCommand<T extends Message>
   }
 }
 
-export interface EnterPukCommand<T extends Message>
-  extends CommandDefinition<T> {
+export interface EnterPukCommand<T extends Message, R extends Message>
+  extends CommandDefinition<T, R> {
   command: {
     cmd: Commands.setPuk
     value: string
   }
 }
 
-export interface EnterCanCommand<T extends Message>
-  extends CommandDefinition<T> {
+export interface EnterCanCommand<T extends Message, R extends Message>
+  extends CommandDefinition<T, R> {
   command: {
     cmd: Commands.setCan
     value: string
   }
 }
 
-export interface EnterPinCommand<T extends Message>
-  extends CommandDefinition<T> {
+export interface EnterPinCommand<T extends Message, R extends Message>
+  extends CommandDefinition<T, R> {
   command: {
     cmd: Commands.setPin
     value: string
   }
 }
 
-export interface AcceptCommand<T extends Message> extends CommandDefinition<T> {
+export interface AcceptCommand<T extends Message, R extends Message>
+  extends CommandDefinition<T, R> {
   command: {
     cmd: Commands.accept
   }
@@ -116,7 +120,8 @@ export interface GetCertificateCommand<T extends Message>
   }
 }
 
-export interface CancelCommand<T extends Message> extends CommandDefinition<T> {
+export interface CancelCommand<T extends Message, R extends Message>
+  extends CommandDefinition<T, R> {
   command: {
     cmd: Commands.cancel
   }
@@ -130,8 +135,8 @@ export interface SetAccessRightsCommand<T extends Message>
   }
 }
 
-export interface SetNewPinCommand<T extends Message>
-  extends CommandDefinition<T> {
+export interface SetNewPinCommand<T extends Message, R extends Message>
+  extends CommandDefinition<T, R> {
   command: {
     cmd: Commands.setNewPin
     value: string

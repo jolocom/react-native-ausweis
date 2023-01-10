@@ -75,18 +75,10 @@ export const getInfoCmd = (): GetInfoCommand<InfoMessage> => {
   }
 }
 
-export function runAuthCmd(
+export const runAuthCmd = (
   tcTokenURL: string,
   config?: ScannerConfig,
-): RunAuthCommand<AccessRightsMessage>
-export function runAuthCmd(
-  tcTokenURL: string,
-  config?: ScannerConfig,
-): RunAuthCommand<AuthMessage>
-export function runAuthCmd(
-  tcTokenURL: string,
-  config?: ScannerConfig,
-): RunAuthCommand<AccessRightsMessage | AuthMessage> {
+): RunAuthCommand<AccessRightsMessage, AccessRightsMessage | AuthMessage> => {
   return {
     command: {
       cmd: Commands.runAuth,
@@ -123,23 +115,12 @@ export function runAuthCmd(
   }
 }
 
-export function changePinCmd(
-  config?: ScannerConfig,
-): ChangePinCommand<EnterPinMessage>
-export function changePinCmd(
-  config?: ScannerConfig,
-): ChangePinCommand<EnterPukMessage>
-export function changePinCmd(
-  config?: ScannerConfig,
-): ChangePinCommand<EnterCanMessage>
-export function changePinCmd(
-  config?: ScannerConfig,
-): ChangePinCommand<ChangePinMessage>
-export function changePinCmd(
+export const changePinCmd = (
   config?: ScannerConfig,
 ): ChangePinCommand<
+  ChangePinMessage,
   EnterPinMessage | EnterPukMessage | EnterCanMessage | ChangePinMessage
-> {
+> => {
   return {
     command: {
       cmd: Commands.runChangePin,
@@ -197,15 +178,12 @@ export function changePinCmd(
   }
 }
 
-export function enterPukCmd(puk: string): EnterPukCommand<EnterPinMessage>
-export function enterPukCmd(puk: string): EnterPukCommand<EnterPukMessage>
-export function enterPukCmd(puk: string): EnterPukCommand<ChangePinMessage>
-export function enterPukCmd(puk: string): EnterPukCommand<AuthMessage>
-export function enterPukCmd(
+export const enterPukCmd = (
   puk: string,
 ): EnterPukCommand<
+  EnterPinMessage | EnterPukMessage,
   EnterPinMessage | EnterPukMessage | ChangePinMessage | AuthMessage
-> {
+> => {
   return {
     command: {
       cmd: Commands.setPuk,
@@ -248,15 +226,12 @@ export function enterPukCmd(
   }
 }
 
-export function enterCanCmd(can: string): EnterCanCommand<EnterPinMessage>
-export function enterCanCmd(can: string): EnterCanCommand<EnterCanMessage>
-export function enterCanCmd(can: string): EnterCanCommand<ChangePinMessage>
-export function enterCanCmd(can: string): EnterCanCommand<AuthMessage>
-export function enterCanCmd(
+export const enterCanCmd = (
   can: string,
 ): EnterCanCommand<
+  EnterCanMessage,
   EnterPinMessage | EnterCanMessage | ChangePinMessage | AuthMessage
-> {
+> => {
   return {
     command: {
       cmd: Commands.setCan,
@@ -308,22 +283,17 @@ export function enterCanCmd(
   }
 }
 
-export function enterPinCmd(pin: string): EnterPinCommand<EnterPinMessage>
-export function enterPinCmd(pin: string): EnterPinCommand<EnterPukMessage>
-export function enterPinCmd(pin: string): EnterPinCommand<EnterCanMessage>
-export function enterPinCmd(pin: string): EnterPinCommand<AuthMessage>
-export function enterPinCmd(pin: string): EnterPinCommand<EnterNewPinMessage>
-export function enterPinCmd(pin: string): EnterPinCommand<ChangePinMessage>
-export function enterPinCmd(
+export const enterPinCmd = (
   pin: string,
 ): EnterPinCommand<
+  EnterPinMessage,
   | EnterPinMessage
   | EnterPukMessage
   | EnterCanMessage
   | AuthMessage
   | EnterNewPinMessage
   | ChangePinMessage
-> {
+> => {
   return {
     command: {
       cmd: Commands.setPin,
@@ -385,13 +355,10 @@ export function enterPinCmd(
   }
 }
 
-export function acceptAuthReqCmd(): AcceptCommand<EnterPinMessage>
-export function acceptAuthReqCmd(): AcceptCommand<EnterPukMessage>
-export function acceptAuthReqCmd(): AcceptCommand<EnterCanMessage>
-export function acceptAuthReqCmd(): AcceptCommand<AuthMessage>
-export function acceptAuthReqCmd(): AcceptCommand<
+export const acceptAuthReqCmd = (): AcceptCommand<
+  AuthMessage,
   EnterPinMessage | EnterPukMessage | EnterCanMessage | AuthMessage
-> {
+> => {
   return {
     command: {
       cmd: Commands.accept,
@@ -449,7 +416,10 @@ export const getCertificate = (): GetCertificateCommand<CertificateMessage> => {
   }
 }
 
-export const cancelFlow = (): CancelCommand<AuthMessage | ChangePinMessage> => {
+export const cancelFlow = (): CancelCommand<
+  AuthMessage,
+  AuthMessage | ChangePinMessage
+> => {
   return {
     command: { cmd: Commands.cancel },
     handler: {
@@ -504,7 +474,9 @@ export const setAccessRights = (
   }
 }
 
-export const setNewPin = (pin: string): SetNewPinCommand<ChangePinMessage> => {
+export const setNewPin = (
+  pin: string,
+): SetNewPinCommand<ChangePinMessage, ChangePinMessage> => {
   return {
     command: { cmd: Commands.setNewPin, value: pin },
     handler: {
