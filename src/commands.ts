@@ -78,7 +78,7 @@ export const getInfoCmd = (): GetInfoCommand<InfoMessage> => {
 export const runAuthCmd = (
   tcTokenURL: string,
   config?: ScannerConfig,
-): RunAuthCommand<AccessRightsMessage | AuthMessage> => {
+): RunAuthCommand<AccessRightsMessage, AccessRightsMessage | AuthMessage> => {
   return {
     command: {
       cmd: Commands.runAuth,
@@ -118,6 +118,7 @@ export const runAuthCmd = (
 export const changePinCmd = (
   config?: ScannerConfig,
 ): ChangePinCommand<
+  ChangePinMessage,
   EnterPinMessage | EnterPukMessage | EnterCanMessage | ChangePinMessage
 > => {
   return {
@@ -180,6 +181,7 @@ export const changePinCmd = (
 export const enterPukCmd = (
   puk: string,
 ): EnterPukCommand<
+  EnterPinMessage | EnterPukMessage,
   EnterPinMessage | EnterPukMessage | ChangePinMessage | AuthMessage
 > => {
   return {
@@ -227,6 +229,7 @@ export const enterPukCmd = (
 export const enterCanCmd = (
   can: string,
 ): EnterCanCommand<
+  EnterCanMessage,
   EnterPinMessage | EnterCanMessage | ChangePinMessage | AuthMessage
 > => {
   return {
@@ -283,6 +286,7 @@ export const enterCanCmd = (
 export const enterPinCmd = (
   pin: string,
 ): EnterPinCommand<
+  EnterPinMessage,
   | EnterPinMessage
   | EnterPukMessage
   | EnterCanMessage
@@ -352,6 +356,7 @@ export const enterPinCmd = (
 }
 
 export const acceptAuthReqCmd = (): AcceptCommand<
+  AuthMessage,
   EnterPinMessage | EnterPukMessage | EnterCanMessage | AuthMessage
 > => {
   return {
@@ -411,7 +416,10 @@ export const getCertificate = (): GetCertificateCommand<CertificateMessage> => {
   }
 }
 
-export const cancelFlow = (): CancelCommand<AuthMessage | ChangePinMessage> => {
+export const cancelFlow = (): CancelCommand<
+  AuthMessage,
+  AuthMessage | ChangePinMessage
+> => {
   return {
     command: { cmd: Commands.cancel },
     handler: {
@@ -466,7 +474,9 @@ export const setAccessRights = (
   }
 }
 
-export const setNewPin = (pin: string): SetNewPinCommand<ChangePinMessage> => {
+export const setNewPin = (
+  pin: string,
+): SetNewPinCommand<ChangePinMessage, ChangePinMessage> => {
   return {
     command: { cmd: Commands.setNewPin, value: pin },
     handler: {
