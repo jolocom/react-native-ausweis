@@ -36,7 +36,7 @@ buildscript {
         dependencies {
             // This should reflect the Gradle plugin version used by
             // the minimum React Native version supported.
-            implementation 'com.governikus:ausweisapp:1.22.1'
+            implementation 'com.governikus:ausweisapp:1.26.2'
             classpath 'com.android.tools.build:gradle:3.4.1'
         }
     }
@@ -74,7 +74,7 @@ repositories {
 dependencies {
     //noinspection GradleDynamicVersion
     implementation 'com.facebook.react:react-native:+'  // From node_modules
-    implementation 'com.governikus:ausweisapp:1.22.1'
+    implementation 'com.governikus:ausweisapp:1.26.2'
 }
 
 def configureReactNativePom(def pom) {
