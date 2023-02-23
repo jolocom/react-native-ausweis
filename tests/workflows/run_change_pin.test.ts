@@ -1,12 +1,13 @@
 import { Messages } from '../../src/messageTypes'
+import { AusweisModule } from '../../src/module'
 import { CardError } from '../../src/types'
 import { changePinFlow } from '../helpers/prepareWorkflowMessages'
 import { getMessagesSequenceRunner } from '../helpers/sequencesRunner'
 import { emitter, initializaAA2NM, makeReaderVariant } from '../helpers/utils'
 
 describe('Change pin workflow', () => {
-  let aa2NM = undefined
-  let messagesSequenceRunner = undefined
+  let aa2NM: AusweisModule
+  let messagesSequenceRunner: Generator<undefined, void, unknown>
 
   beforeAll(async () => {
     aa2NM = await initializaAA2NM()

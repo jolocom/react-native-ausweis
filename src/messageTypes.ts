@@ -15,6 +15,11 @@ export enum Messages {
   reader = 'READER',
   enterNewPin = 'ENTER_NEW_PIN',
   changePin = 'CHANGE_PIN',
+  internalError = 'INTERNAL_ERROR',
+  invalid = 'INVALID',
+  readerList = 'READER_LIST',
+  status = 'STATUS',
+  unknownCommand = 'UNKNOWN_COMMAND',
 }
 
 export interface Message {
@@ -80,8 +85,9 @@ export interface AccessRightsMessage extends Message {
 interface ReaderInfo {
   name: string
   attached: boolean
+  insertable: boolean
   keypad: boolean
-  card: CardInfo
+  card: CardInfo | null
 }
 
 export interface EnterPinMessage extends Message {
@@ -113,6 +119,15 @@ export interface InsertCardMessage extends Message {
   msg: Messages.insertCard
 }
 
+export interface InternalErrordMessage extends Message {
+  msg: Messages.internalError
+}
+
+export interface InvalidMessage extends Message {
+  msg: Messages.invalid
+  error: string
+}
+
 interface CertificateDescription {
   issuerName: string
   issuerUrl: string
@@ -135,4 +150,21 @@ export interface CertificateMessage extends Message {
 
 export interface ReaderMessage extends Message, ReaderInfo {
   msg: Messages.reader
+}
+
+export interface ReaderListMessage extends Message {
+  msg: Messages.readerList
+  readers: Array<ReaderInfo>
+}
+
+export interface StatusMessage extends Message {
+  msg: Messages.status
+  workflow: string | null
+  progress: number | null
+  state: string | null
+}
+
+export interface UnkownCommandMessage extends Message {
+  msg: Messages.status
+  error: string
 }

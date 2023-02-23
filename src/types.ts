@@ -16,11 +16,19 @@ export type CardInfo = {
   retryCounter: number
 }
 
-export interface ScannerConfig {
+export interface ScannerMessages {
   sessionStarted: string
   sessionFailed: string
   sessionSucceeded: string
   sessionInProgress: string
+}
+
+export type SimulatorData = {
+  files: Array<{
+    fileId: string
+    shortFileId: string
+    content: string
+  }>
 }
 
 export enum AccessRightsFields {

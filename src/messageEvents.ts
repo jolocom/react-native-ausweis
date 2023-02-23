@@ -12,8 +12,13 @@ import {
   InfoMessage,
   InitMessage,
   InsertCardMessage,
+  InternalErrordMessage,
+  InvalidMessage,
   Messages,
+  ReaderListMessage,
   ReaderMessage,
+  StatusMessage,
+  UnkownCommandMessage,
 } from './messageTypes'
 
 export interface MessageEvents {
@@ -31,4 +36,9 @@ export interface MessageEvents {
   [Messages.reader]: (msg: ReaderMessage) => void
   [Messages.enterNewPin]: (msg: EnterNewPinMessage) => void
   [Messages.changePin]: (msg: ChangePinMessage) => void
+  [Messages.internalError]: (msg: InternalErrordMessage) => void
+  [Messages.invalid]: (msg: InvalidMessage) => void
+  [Messages.readerList]: (msg: ReaderListMessage) => void
+  [Messages.status]: (msg: StatusMessage) => void
+  [Messages.unknownCommand]: (msg: UnkownCommandMessage) => void
 }

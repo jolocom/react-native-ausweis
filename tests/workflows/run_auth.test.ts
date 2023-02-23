@@ -37,8 +37,8 @@ async function proceedAuthUntilTheScanner(
 }
 
 describe('Run auth workflow', () => {
-  let aa2NM = undefined
-  let messagesSequenceRunner = undefined
+  let aa2NM: AusweisModule
+  let messagesSequenceRunner: Generator<undefined, void, unknown>
 
   beforeAll(async () => {
     aa2NM = await initializaAA2NM()
@@ -141,7 +141,7 @@ describe('Run auth workflow', () => {
     })
     expect(mockHandlePukRequestFn).toBeCalledTimes(1)
 
-    const setPukPromise = aa2NM.setPuk()
+    const setPukPromise = (aa2NM as any).setPuk()
     messagesSequenceRunner.next()
     await expect(setPukPromise).rejects.toBe(CardError.cardIsBlocked)
     expect(mockHandleAuthFailedFn).toBeCalledTimes(0)

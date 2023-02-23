@@ -43,8 +43,8 @@ describe('AA2 SDK', () => {
   })
 
   describe('internal quirks; module', () => {
-    let aa2NM = undefined
-    let messagesSequenceRunner = undefined
+    let aa2NM: AusweisModule
+    let messagesSequenceRunner: Generator<undefined, void, unknown>
 
     beforeAll(async () => {
       aa2NM = await initializaAA2NM()

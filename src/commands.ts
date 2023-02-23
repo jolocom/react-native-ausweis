@@ -3,9 +3,9 @@ import {
   CancelCommand,
   ChangePinCommand,
   Commands,
-  EnterCanCommand,
-  EnterPinCommand,
-  EnterPukCommand,
+  SetCanCommand,
+  SetPinCommand,
+  SetPukCommand,
   GetCertificateCommand,
   GetInfoCommand,
   Handler,
@@ -14,9 +14,18 @@ import {
   RunAuthCommand,
   SetAccessRightsCommand,
   SetNewPinCommand,
+  GetStatusCommand,
+  GetAPILevelCommand,
+  SetAPILevelCommand,
+  GetReaderCommand,
+  GetReaderListCommand,
+  GetAccessRightsCommand,
+  SetCardCommand,
+  InterruptCommand,
 } from './commandTypes'
 import {
   AccessRightsMessage,
+  ApiLevelMessage,
   AuthMessage,
   BadStateMessage,
   CertificateMessage,
@@ -29,9 +38,16 @@ import {
   InitMessage,
   InsertCardMessage,
   Messages,
+  ReaderListMessage,
   ReaderMessage,
+  StatusMessage,
 } from './messageTypes'
-import { AccessRightsFields, CardError, ScannerConfig } from './types'
+import {
+  AccessRightsFields,
+  CardError,
+  ScannerMessages,
+  SimulatorData,
+} from './types'
 
 export const insertCardHandler: HandlerDefinition<InsertCardMessage> = {
   canHandle: [Messages.insertCard],
@@ -75,26 +91,73 @@ export const getInfoCmd = (): GetInfoCommand<InfoMessage> => {
   }
 }
 
+export const getStatusCmd = (): GetStatusCommand<StatusMessage> => {
+  return {
+    command: { cmd: Commands.getStatus },
+    handler: {
+      canHandle: [Messages.status],
+      handle: (message, _, { resolve }) => resolve(message),
+    },
+  }
+}
+
+export const getAPILevelCmd = (): GetAPILevelCommand<ApiLevelMessage> => {
+  return {
+    command: { cmd: Commands.getAPILevel },
+    handler: {
+      canHandle: [Messages.apiLevel],
+      handle: (message, _, { resolve }) => resolve(message),
+    },
+  }
+}
+
+export const setAPILevelCmd = (
+  level: number,
+): SetAPILevelCommand<ApiLevelMessage> => {
+  return {
+    command: { cmd: Commands.setAPILevel, level },
+    handler: {
+      canHandle: [Messages.apiLevel],
+      handle: (message, _, { resolve }) => resolve(message),
+    },
+  }
+}
+
+export const getReaderCmd = (name: string): GetReaderCommand<ReaderMessage> => {
+  return {
+    command: { cmd: Commands.getReader, name },
+    handler: {
+      canHandle: [Messages.reader],
+      handle: (message, _, { resolve }) => resolve(message),
+    },
+  }
+}
+
+export const getReaderListCmd = (): GetReaderListCommand<ReaderListMessage> => {
+  return {
+    command: { cmd: Commands.getReaderList },
+    handler: {
+      canHandle: [Messages.readerList],
+      handle: (message, _, { resolve }) => resolve(message),
+    },
+  }
+}
+
 export const runAuthCmd = (
   tcTokenURL: string,
-  config?: ScannerConfig,
+  developerMode?: boolean,
+  handleInterrupt?: boolean,
+  status?: boolean,
+  messages?: ScannerMessages,
 ): RunAuthCommand<AccessRightsMessage, AccessRightsMessage | AuthMessage> => {
   return {
     command: {
       cmd: Commands.runAuth,
       tcTokenURL,
-      handleInterrupt: true,
-      messages: {
-        sessionStarted:
-          config?.sessionStarted ??
-          "Please place your ID card on the top of the device's back side.",
-        sessionFailed: config?.sessionFailed ?? 'Scanning process failed.',
-        sessionSucceeded:
-          config?.sessionSucceeded ??
-          'Scanning process has been finished successfully.',
-        sessionInProgress:
-          config?.sessionInProgress ?? 'Scanning process is in progress.',
-      },
+      developerMode,
+      handleInterrupt,
+      status,
+      messages,
     },
     handler: {
       canHandle: [Messages.accessRights, Messages.auth],
@@ -116,7 +179,9 @@ export const runAuthCmd = (
 }
 
 export const changePinCmd = (
-  config?: ScannerConfig,
+  handleInterrupt?: boolean,
+  status?: boolean,
+  messages?: ScannerMessages,
 ): ChangePinCommand<
   ChangePinMessage,
   EnterPinMessage | EnterPukMessage | EnterCanMessage | ChangePinMessage
@@ -124,18 +189,9 @@ export const changePinCmd = (
   return {
     command: {
       cmd: Commands.runChangePin,
-      handleInterrupt: true,
-      messages: {
-        sessionStarted:
-          config?.sessionStarted ??
-          "Please place your ID card on the top of the device's back side.",
-        sessionFailed: config?.sessionFailed ?? 'Scanning process failed.',
-        sessionSucceeded:
-          config?.sessionSucceeded ??
-          'Scanning process has been finished successfully.',
-        sessionInProgress:
-          config?.sessionInProgress ?? 'Scanning process is in progress.',
-      },
+      handleInterrupt,
+      status,
+      messages,
     },
     handler: {
       canHandle: [
@@ -178,9 +234,9 @@ export const changePinCmd = (
   }
 }
 
-export const enterPukCmd = (
+export const setPukCmd = (
   puk: string,
-): EnterPukCommand<
+): SetPukCommand<
   EnterPinMessage | EnterPukMessage,
   EnterPinMessage | EnterPukMessage | ChangePinMessage | AuthMessage
 > => {
@@ -226,9 +282,9 @@ export const enterPukCmd = (
   }
 }
 
-export const enterCanCmd = (
+export const setCanCmd = (
   can: string,
-): EnterCanCommand<
+): SetCanCommand<
   EnterCanMessage,
   EnterPinMessage | EnterCanMessage | ChangePinMessage | AuthMessage
 > => {
@@ -283,9 +339,9 @@ export const enterCanCmd = (
   }
 }
 
-export const enterPinCmd = (
+export const setPinCmd = (
   pin: string,
-): EnterPinCommand<
+): SetPinCommand<
   EnterPinMessage,
   | EnterPinMessage
   | EnterPukMessage
@@ -355,7 +411,7 @@ export const enterPinCmd = (
   }
 }
 
-export const acceptAuthReqCmd = (): AcceptCommand<
+export const acceptCmd = (): AcceptCommand<
   AuthMessage,
   EnterPinMessage | EnterPukMessage | EnterCanMessage | AuthMessage
 > => {
@@ -455,6 +511,30 @@ export const cancelFlow = (): CancelCommand<
   }
 }
 
+export const interruptFlow = (): InterruptCommand => {
+  return {
+    command: { cmd: Commands.interrupt },
+  }
+}
+
+export const getAccessRights =
+  (): GetAccessRightsCommand<AccessRightsMessage> => {
+    return {
+      command: { cmd: Commands.getAccessRights },
+      handler: {
+        canHandle: [Messages.accessRights],
+        handle: (message, _, { resolve, reject }) => {
+          switch (message.msg) {
+            case Messages.accessRights:
+              return resolve(message)
+            default:
+              return reject(new Error('Unknown message type'))
+          }
+        },
+      },
+    }
+  }
+
 export const setAccessRights = (
   optionalFields: Array<AccessRightsFields>,
 ): SetAccessRightsCommand<AccessRightsMessage> => {
@@ -470,6 +550,19 @@ export const setAccessRights = (
             return reject(new Error('Unknown message type'))
         }
       },
+    },
+  }
+}
+
+export const setCard = (
+  readerName: string,
+  simulatorData?: SimulatorData,
+): SetCardCommand => {
+  return {
+    command: {
+      cmd: Commands.setCard,
+      name: readerName,
+      simulator: simulatorData,
     },
   }
 }

@@ -8,15 +8,15 @@ import {
 import EventEmitter from 'events'
 import TypedEmitter from 'typed-emitter'
 import {
-  acceptAuthReqCmd,
-  enterPinCmd,
+  acceptCmd,
+  setPinCmd,
   getInfoCmd,
   runAuthCmd,
   initSdkCmd,
   getCertificate,
   cancelFlow,
-  enterCanCmd,
-  enterPukCmd,
+  setCanCmd,
+  setPukCmd,
   setAccessRights,
   setNewPin,
   changePinCmd,
@@ -39,7 +39,7 @@ import {
   Message,
   Messages,
 } from './messageTypes'
-import { Filter, Events, AccessRightsFields, ScannerConfig } from './types'
+import { Filter, Events, AccessRightsFields, ScannerMessages } from './types'
 import { delay } from './utils'
 
 interface NativeEmitter {
@@ -161,8 +161,16 @@ export class AusweisModule {
    * @see https://www.ausweisapp.bund.de/sdk/commands.html#run-auth
    */
 
-  public async startAuth(tcTokenUrl: string, config?: ScannerConfig) {
-    return this.sendCmd(runAuthCmd(tcTokenUrl, config))
+  public async startAuth(
+    tcTokenUrl: string,
+    developerMode?: boolean,
+    handleInterrupt?: boolean,
+    status?: boolean,
+    messages?: ScannerMessages,
+  ) {
+    return this.sendCmd(
+      runAuthCmd(tcTokenUrl, developerMode, handleInterrupt, status, messages),
+    )
   }
 
   private rejectCurrentOperation(errorMessage: string) {
@@ -220,7 +228,7 @@ export class AusweisModule {
     })
   }
 
-  private onMessage(message: Message) {
+  private onMessage(message: any) {
     this.log(message)
 
     // FIXME: background handlers can't be called without a "current operation"
@@ -229,7 +237,7 @@ export class AusweisModule {
       reject: () => undefined,
     }
 
-    this.messageEmitter.emit(message.msg, message as any)
+    this.messageEmitter.emit(message.msg, message)
 
     const { handle } =
       this.handlers.find(({ canHandle }) =>
@@ -299,21 +307,21 @@ export class AusweisModule {
 
   // TODO Make sure 5 / 6 digits
   public async setPin(pin: string) {
-    return this.sendCmd(enterPinCmd(pin))
+    return this.sendCmd(setPinCmd(pin))
   }
 
   // TODO Make sure 6 digits
   public async setCan(can: string) {
-    return this.sendCmd(enterCanCmd(can))
+    return this.sendCmd(setCanCmd(can))
   }
 
   // TODO Make sure 10 digits
   public async setPuk(puk: string) {
-    return this.sendCmd(enterPukCmd(puk))
+    return this.sendCmd(setPukCmd(puk))
   }
 
   public async acceptAuthRequest() {
-    return this.sendCmd(acceptAuthReqCmd())
+    return this.sendCmd(acceptCmd())
   }
 
   public async getCertificate() {
@@ -332,7 +340,11 @@ export class AusweisModule {
     return this.sendCmd(setNewPin(pin))
   }
 
-  public startChangePin(config?: ScannerConfig) {
-    return this.sendCmd(changePinCmd(config))
+  public startChangePin(
+    handleInterrupt?: boolean,
+    status?: boolean,
+    messages?: ScannerMessages,
+  ) {
+    return this.sendCmd(changePinCmd(handleInterrupt, status, messages))
   }
 }
