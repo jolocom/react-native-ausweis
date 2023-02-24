@@ -165,6 +165,6 @@ export interface StatusMessage extends Message {
 }
 
 export interface UnkownCommandMessage extends Message {
-  msg: Messages.status
+  msg: Messages.unknownCommand
   error: string
 }

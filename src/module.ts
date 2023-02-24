@@ -232,7 +232,7 @@ export class AusweisModule {
     })
   }
 
-  private onMessage(message: any) {
+  private onMessage(message: Message) {
     this.log(message)
 
     // FIXME: background handlers can't be called without a "current operation"
@@ -241,7 +241,7 @@ export class AusweisModule {
       reject: () => undefined,
     }
 
-    this.messageEmitter.emit(message.msg, message)
+    this.messageEmitter.emit(message.msg, message as any)
 
     const { handle } =
       this.handlers.find(({ canHandle }) =>

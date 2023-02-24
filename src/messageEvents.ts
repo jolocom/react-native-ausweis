@@ -21,7 +21,7 @@ import {
   UnkownCommandMessage,
 } from './messageTypes'
 
-export interface MessageEvents {
+export type MessageEvents = {
   [Messages.init]: (msg: InitMessage) => void
   [Messages.apiLevel]: (msg: ApiLevelMessage) => void
   [Messages.badState]: (msg: BadStateMessage) => void
