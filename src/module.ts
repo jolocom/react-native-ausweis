@@ -13,22 +13,32 @@ import {
   getInfoCmd,
   runAuthCmd,
   initSdkCmd,
-  getCertificate,
-  cancelFlow,
+  getCertificateCmd,
+  cancelFlowCmd,
   setCanCmd,
   setPukCmd,
-  setAccessRights,
-  setNewPin,
+  setAccessRightsCmd,
+  setNewPinCmd,
   changePinCmd,
   insertCardHandler,
   readerHandler,
   badStateHandler,
+  getStatusCmd,
+  setAPILevelCmd,
+  getAPILevelCmd,
+  getReaderCmd,
+  getReaderListCmd,
+  getAccessRightsCmd,
+  interruptFlowCmd,
+  setCardCmd,
+  statusHandler,
 } from './commands'
 import {
   CommandDefinition,
   disruptiveCommands,
   EventHandlers,
   HandlerDefinition,
+  VoidCommandDefinition,
 } from './commandTypes'
 import { SdkNotInitializedError } from './errors'
 import { MessageEvents } from './messageEvents'
@@ -39,7 +49,13 @@ import {
   Message,
   Messages,
 } from './messageTypes'
-import { Filter, Events, AccessRightsFields, ScannerMessages } from './types'
+import {
+  Filter,
+  Events,
+  AccessRightsFields,
+  ScannerMessages,
+  SimulatorData,
+} from './types'
 import { delay } from './utils'
 
 interface NativeEmitter {
@@ -73,7 +89,9 @@ export class AusweisModule {
     insertCardHandler,
     readerHandler,
     badStateHandler,
+    statusHandler,
   ]
+
   private eventHandlers: Partial<EventHandlers> = {}
 
   public messageEmitter = new EventEmitter() as TypedEmitter<MessageEvents>
@@ -149,30 +167,6 @@ export class AusweisModule {
     })
   }
 
-  /**
-   * @see https://www.ausweisapp.bund.de/sdk/commands.html#get-info
-   */
-
-  public async getInfo() {
-    return this.sendCmd(getInfoCmd())
-  }
-
-  /**
-   * @see https://www.ausweisapp.bund.de/sdk/commands.html#run-auth
-   */
-
-  public async startAuth(
-    tcTokenUrl: string,
-    developerMode?: boolean,
-    handleInterrupt?: boolean,
-    status?: boolean,
-    messages?: ScannerMessages,
-  ) {
-    return this.sendCmd(
-      runAuthCmd(tcTokenUrl, developerMode, handleInterrupt, status, messages),
-    )
-  }
-
   private rejectCurrentOperation(errorMessage: string) {
     if (!this.currentOperation) {
       throw new Error('TODO')
@@ -188,6 +182,16 @@ export class AusweisModule {
   }
 
   public async disconnectAa2Sdk() {}
+
+  private sendVoidCmd({ command }: VoidCommandDefinition): void {
+    this.log(command)
+
+    if (!this.isInitialized) {
+      throw new SdkNotInitializedError()
+    }
+
+    this.nativeAa2Module.sendCMD(JSON.stringify(command))
+  }
 
   private async sendCmd<T extends Message>({
     command,
@@ -305,46 +309,170 @@ export class AusweisModule {
     )
   }
 
+  /**
+   * @see https://www.ausweisapp.bund.de/sdk/commands.html#get-info
+   */
+
+  public async getInfo() {
+    return this.sendCmd(getInfoCmd())
+  }
+
+  /**
+   * @see https://www.ausweisapp.bund.de/sdk/commands.html#run-auth
+   */
+
+  public async startAuth(
+    tcTokenUrl: string,
+    developerMode?: boolean,
+    handleInterrupt?: boolean,
+    status?: boolean,
+    messages?: ScannerMessages,
+  ) {
+    return this.sendCmd(
+      runAuthCmd(tcTokenUrl, developerMode, handleInterrupt, status, messages),
+    )
+  }
+
+  /**
+   * @see https://www.ausweisapp.bund.de/sdk/commands.html#get-status
+   */
+
+  public async getStatus() {
+    return this.sendCmd(getStatusCmd())
+  }
+
+  /**
+   * @see https://www.ausweisapp.bund.de/sdk/commands.html#set-api-level
+   */
+
+  public async setAPILevel(level: number) {
+    return this.sendCmd(setAPILevelCmd(level))
+  }
+
+  /**
+   * @see https://www.ausweisapp.bund.de/sdk/commands.html#get-api-level
+   */
+
+  public async getAPILevel() {
+    return this.sendCmd(getAPILevelCmd())
+  }
+
+  /**
+   * @see https://www.ausweisapp.bund.de/sdk/commands.html#get-reader
+   */
+
+  public async getReader(name: string) {
+    return this.sendCmd(getReaderCmd(name))
+  }
+
+  /**
+   * @see https://www.ausweisapp.bund.de/sdk/commands.html#get-reader-list
+   */
+
+  public async getReaderList() {
+    return this.sendCmd(getReaderListCmd())
+  }
+
+  /**
+   * @see https://www.ausweisapp.bund.de/sdk/commands.html#set-card
+   */
+
+  public setCard(readerName: string, simulatorData?: SimulatorData) {
+    return this.sendVoidCmd(setCardCmd(readerName, simulatorData))
+  }
+
+  /**
+   * @see https://www.ausweisapp.bund.de/sdk/commands.html#set-pin
+   */
+
   // TODO Make sure 5 / 6 digits
   public async setPin(pin: string) {
     return this.sendCmd(setPinCmd(pin))
   }
 
-  // TODO Make sure 6 digits
+  /**
+   * @see https://www.ausweisapp.bund.de/sdk/commands.html#set-can
+   */
+
   public async setCan(can: string) {
+    // TODO Make sure 6 digits
     return this.sendCmd(setCanCmd(can))
   }
 
-  // TODO Make sure 10 digits
+  /**
+   * @see https://www.ausweisapp.bund.de/sdk/commands.html#set-puk
+   */
+
   public async setPuk(puk: string) {
+    // TODO Make sure 10 digits
     return this.sendCmd(setPukCmd(puk))
   }
+
+  /**
+   * @see https://www.ausweisapp.bund.de/sdk/commands.html#accept
+   */
 
   public async acceptAuthRequest() {
     return this.sendCmd(acceptCmd())
   }
 
+  /**
+   * @see https://www.ausweisapp.bund.de/sdk/commands.html#get-certificate
+   */
+
   public async getCertificate() {
-    return this.sendCmd(getCertificate())
+    return this.sendCmd(getCertificateCmd())
   }
 
-  public cancelFlow() {
-    return this.sendCmd(cancelFlow())
+  /**
+   * @see https://www.ausweisapp.bund.de/sdk/commands.html#cancel
+   */
+
+  public async cancelFlow() {
+    return this.sendCmd(cancelFlowCmd())
   }
 
-  public setAccessRights(optionalFields: Array<AccessRightsFields>) {
-    return this.sendCmd(setAccessRights(optionalFields))
+  /**
+   * @see https://www.ausweisapp.bund.de/sdk/commands.html#set-access-rights
+   */
+
+  public async setAccessRights(optionalFields: Array<AccessRightsFields>) {
+    return this.sendCmd(setAccessRightsCmd(optionalFields))
   }
 
-  public setNewPin(pin: string) {
-    return this.sendCmd(setNewPin(pin))
+  /**
+   * @see https://www.ausweisapp.bund.de/sdk/commands.html#get-access-rights
+   */
+
+  public async getAccessRights() {
+    return this.sendCmd(getAccessRightsCmd())
   }
 
-  public startChangePin(
+  /**
+   * @see https://www.ausweisapp.bund.de/sdk/commands.html#set-new-pin
+   */
+
+  public async setNewPin(pin: string) {
+    return this.sendCmd(setNewPinCmd(pin))
+  }
+
+  /**
+   * @see https://www.ausweisapp.bund.de/sdk/commands.html#run-change-pin
+   */
+
+  public async startChangePin(
     handleInterrupt?: boolean,
     status?: boolean,
     messages?: ScannerMessages,
   ) {
     return this.sendCmd(changePinCmd(handleInterrupt, status, messages))
+  }
+
+  /**
+   * @see https://www.ausweisapp.bund.de/sdk/commands.html#interrupt
+   */
+
+  public interruptFlow() {
+    return this.sendVoidCmd(interruptFlowCmd())
   }
 }

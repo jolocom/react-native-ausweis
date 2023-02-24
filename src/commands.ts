@@ -70,6 +70,13 @@ export const badStateHandler: HandlerDefinition<BadStateMessage> = {
   },
 }
 
+export const statusHandler: HandlerDefinition<StatusMessage> = {
+  canHandle: [Messages.status],
+  handle: (message, { handleStatus }, { reject }) => {
+    return handleStatus && handleStatus(message)
+  },
+}
+
 export const initSdkCmd = (
   callback: Handler<InitMessage>,
 ): InitCommand<InitMessage> => ({
@@ -462,17 +469,18 @@ export const acceptCmd = (): AcceptCommand<
   }
 }
 
-export const getCertificate = (): GetCertificateCommand<CertificateMessage> => {
-  return {
-    command: { cmd: Commands.getCertificate },
-    handler: {
-      canHandle: [Messages.certificate],
-      handle: (message, _, { resolve }) => resolve(message),
-    },
+export const getCertificateCmd =
+  (): GetCertificateCommand<CertificateMessage> => {
+    return {
+      command: { cmd: Commands.getCertificate },
+      handler: {
+        canHandle: [Messages.certificate],
+        handle: (message, _, { resolve }) => resolve(message),
+      },
+    }
   }
-}
 
-export const cancelFlow = (): CancelCommand<
+export const cancelFlowCmd = (): CancelCommand<
   AuthMessage,
   AuthMessage | ChangePinMessage
 > => {
@@ -511,13 +519,13 @@ export const cancelFlow = (): CancelCommand<
   }
 }
 
-export const interruptFlow = (): InterruptCommand => {
+export const interruptFlowCmd = (): InterruptCommand => {
   return {
     command: { cmd: Commands.interrupt },
   }
 }
 
-export const getAccessRights =
+export const getAccessRightsCmd =
   (): GetAccessRightsCommand<AccessRightsMessage> => {
     return {
       command: { cmd: Commands.getAccessRights },
@@ -535,7 +543,7 @@ export const getAccessRights =
     }
   }
 
-export const setAccessRights = (
+export const setAccessRightsCmd = (
   optionalFields: Array<AccessRightsFields>,
 ): SetAccessRightsCommand<AccessRightsMessage> => {
   return {
@@ -554,7 +562,7 @@ export const setAccessRights = (
   }
 }
 
-export const setCard = (
+export const setCardCmd = (
   readerName: string,
   simulatorData?: SimulatorData,
 ): SetCardCommand => {
@@ -567,7 +575,7 @@ export const setCard = (
   }
 }
 
-export const setNewPin = (
+export const setNewPinCmd = (
   pin: string,
 ): SetNewPinCommand<ChangePinMessage, ChangePinMessage> => {
   return {

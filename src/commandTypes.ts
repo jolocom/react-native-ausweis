@@ -1,4 +1,4 @@
-import { Message } from './messageTypes'
+import { Message, StatusMessage } from './messageTypes'
 import {
   AccessRightsFields,
   CardInfo,
@@ -42,6 +42,7 @@ export interface EventHandlers {
   handleEnterNewPin: () => void
   handleChangePinCancel: () => void
   handleChangePinSuccess: () => void
+  handleStatus: (status: StatusMessage) => void
 }
 
 export type Handler<T extends Message, R extends Message = T> = (

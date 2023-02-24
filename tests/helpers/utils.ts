@@ -46,6 +46,7 @@ export function makeReaderVariant(cardProps?: Partial<CardInfo>) {
   const defaultReaderMsg = {
     reader: {
       attached: true,
+      insertable: true,
       card: {
         deactivated: false,
         inoperative: false,

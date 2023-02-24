@@ -90,6 +90,11 @@ export enum Messages {
   reader = 'READER',
   enterNewPin = 'ENTER_NEW_PIN',
   changePin = 'CHANGE_PIN',
+  internalError = 'INTERNAL_ERROR',
+  invalid = 'INVALID',
+  readerList = 'READER_LIST',
+  status = 'STATUS',
+  unknownCommand = 'UNKNOWN_COMMAND',
 }
 ```
 
@@ -117,6 +122,7 @@ interface EventHandlers {
   handleEnterNewPin: () => void // msg ENTER_NEW_PIN
   handleChangePinCancel: () => void // msg CHANGE_PIN (success: false)
   handleChangePinSuccess: () => void // msg CHANGE_PIN (success: true)
+  handleStatus: (status: StatusMessage) => void // msg STATUS
 }
 ```
 
