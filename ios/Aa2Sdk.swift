@@ -62,7 +62,7 @@ class Aa2Sdk: NSObject {
     
     
     @objc func initAASdk() {
-        if (!ausweisapp2_init(cb)) {
+        if (!ausweisapp2_init(cb, nil)) {
             Emitter.shared?.sendEvent(
                 withName: "onError",
                 body: String(data: try! JSONEncoder().encode(ErrorResponse(error: "SdkInitializationException")), encoding: .utf8)

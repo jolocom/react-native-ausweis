@@ -24,6 +24,11 @@ RCT_EXTERN_METHOD(sendCMD: (NSString *) cmd)
 RCT_EXTERN_METHOD(initAASdk)
 
 RCT_EXTERN_METHOD(disconnectSdk)
+
++ (BOOL)requiresMainQueueSetup
+{
+  return NO;
+}
 @end
 
 
