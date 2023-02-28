@@ -12,7 +12,8 @@
     "outDir": "./js/",
     "rootDir": "./src/",
     "experimentalDecorators": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "skipLibCheck": true
   },
   "filesGlob": ["./index.ts", "!./node_modules/**/*.ts"],
   "exclude": ["./js", "./tests/**/*", "./example/**/*"]
