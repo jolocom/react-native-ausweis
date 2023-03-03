@@ -16,7 +16,8 @@
     "prepare": "yarn build",
     "test": "jest --verbose",
     "prettier:fix": "prettier src/ --write",
-    "prettier:check": "prettier src/ --check"
+    "prettier:check": "prettier src/ --check",
+    "postinstall": "git submodule update --init --recursive"
   },
   "repository": {
     "type": "git",
