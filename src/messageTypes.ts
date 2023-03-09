@@ -2,6 +2,7 @@ import { AccessRights, CardInfo } from './types'
 
 export enum Messages {
   init = 'INIT',
+  disconnect = 'DISCONNECT',
   apiLevel = 'API_LEVEL',
   badState = 'BAD_STATE',
   info = 'INFO',
@@ -30,6 +31,11 @@ export interface Message {
 // NOTE: Is this even a thing?
 export interface InitMessage extends Message {
   msg: Messages.init
+}
+
+// NOTE: Is this even a thing?
+export interface DisconnectMessage extends Message {
+  msg: Messages.disconnect
 }
 
 export interface ApiLevelMessage extends Message {

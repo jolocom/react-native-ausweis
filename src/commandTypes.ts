@@ -8,6 +8,7 @@ import {
 
 export enum Commands {
   init = 'INIT',
+  disconnect = 'DISCONNECT',
   getInfo = 'GET_INFO',
   getStatus = 'GET_STATUS',
   getAPILevel = 'GET_API_LEVEL',
@@ -70,6 +71,12 @@ export interface CommandDefinition<
 export interface InitCommand<T extends Message> extends CommandDefinition<T> {
   command: {
     cmd: Commands.init
+  }
+}
+
+export interface DisconnectCommand<T extends Message> extends CommandDefinition<T> {
+  command: {
+    cmd: Commands.disconnect
   }
 }
 

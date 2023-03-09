@@ -65,9 +65,18 @@ if (!aa2Module.isInitialized) {
 ```
 
 ### Disconnect
-Note: currently it is a noop method
+To shutdown the SDK, you need to disconnect it.
+
 ```javascript
-await aa2Module.disconnectAa2Sdk()
+import { aa2Module } from '@jolocom/react-native-ausweis'
+
+if (aa2Module.isInitialized) {
+  try {
+    await aa2Module.disconnectAa2Sdk()
+  } catch (e) {
+    console.error(e)
+  }
+}
 ```
 
 ## Messages 

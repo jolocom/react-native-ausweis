@@ -5,6 +5,7 @@ import {
   BadStateMessage,
   CertificateMessage,
   ChangePinMessage,
+  DisconnectMessage,
   EnterCanMessage,
   EnterNewPinMessage,
   EnterPinMessage,
@@ -23,6 +24,7 @@ import {
 
 export type MessageEvents = {
   [Messages.init]: (msg: InitMessage) => void
+  [Messages.disconnect]: (msg: DisconnectMessage) => void
   [Messages.apiLevel]: (msg: ApiLevelMessage) => void
   [Messages.badState]: (msg: BadStateMessage) => void
   [Messages.info]: (msg: InfoMessage) => void

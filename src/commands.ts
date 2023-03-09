@@ -3,6 +3,7 @@ import {
   CancelCommand,
   ChangePinCommand,
   Commands,
+  DisconnectCommand,
   SetCanCommand,
   SetPinCommand,
   SetPukCommand,
@@ -36,6 +37,7 @@ import {
   EnterPukMessage,
   InfoMessage,
   InitMessage,
+  DisconnectMessage,
   InsertCardMessage,
   Messages,
   ReaderListMessage,
@@ -84,6 +86,17 @@ export const initSdkCmd = (
 
   handler: {
     canHandle: [Messages.init],
+    handle: callback,
+  },
+})
+
+export const disconnectSdkCmd = (
+  callback: Handler<DisconnectMessage>,
+): DisconnectCommand<DisconnectMessage> => ({
+  command: { cmd: Commands.disconnect },
+
+  handler: {
+    canHandle: [Messages.disconnect],
     handle: callback,
   },
 })

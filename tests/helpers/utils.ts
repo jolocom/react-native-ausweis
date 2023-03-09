@@ -18,6 +18,7 @@ export class TestEmitter {
 export const mockAa2Impl = {
   sendCMD: async (_: Object) => {},
   initAASdk: async () => {},
+  disconnectSdk: async () => {},
 }
 
 export const emitter = new TestEmitter()

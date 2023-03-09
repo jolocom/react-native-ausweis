@@ -32,6 +32,7 @@ import {
   interruptFlowCmd,
   setCardCmd,
   statusHandler,
+  disconnectSdkCmd,
 } from './commands'
 import {
   CommandDefinition,
@@ -64,6 +65,7 @@ interface NativeEmitter {
 
 interface AusweisImplementation {
   initAASdk: () => void
+  disconnectSdk: () => void
   sendCMD: (cmd: string) => void
 }
 
@@ -121,6 +123,10 @@ export class AusweisModule {
       this.onMessage({ msg: Messages.init }),
     )
 
+    this.nativeEventEmitter.addListener(Events.sdkDisconnected, () =>
+      this.onMessage({ msg: Messages.disconnect }),
+    )
+
     this.nativeEventEmitter.addListener(Events.message, (response: string) => {
       const { message, error } = JSON.parse(response)
 
@@ -150,8 +156,6 @@ export class AusweisModule {
 
   public async initAa2Sdk() {
     return new Promise((resolve, reject) => {
-      this.nativeAa2Module.initAASdk()
-
       const initCmd = initSdkCmd(() => {
         this.isInitialized = true
 
@@ -164,6 +168,34 @@ export class AusweisModule {
         ...initCmd,
         callbacks: { resolve, reject },
       }
+
+      this.nativeAa2Module.initAASdk()
+    })
+  }
+
+  public async disconnectAa2Sdk() {
+    return new Promise((resolve, reject) => {
+      if (
+        this.currentOperation !== undefined ||
+        this.queuedOperations.length !== 0
+      ) {
+        reject(new Error('Command queue not empty'))
+      }
+
+      const initCmd = disconnectSdkCmd(() => {
+        this.isInitialized = false
+
+        this.currentOperation.callbacks.resolve()
+
+        return this.clearCurrentOperation()
+      })
+
+      this.currentOperation = {
+        ...initCmd,
+        callbacks: { resolve, reject },
+      }
+
+      this.nativeAa2Module.disconnectSdk()
     })
   }
 
@@ -180,8 +212,6 @@ export class AusweisModule {
   private clearCurrentOperation() {
     this.currentOperation = undefined
   }
-
-  public async disconnectAa2Sdk() {}
 
   private sendVoidCmd({ command }: VoidCommandDefinition): void {
     this.log(command)
