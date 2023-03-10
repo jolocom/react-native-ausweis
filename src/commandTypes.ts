@@ -74,7 +74,8 @@ export interface InitCommand<T extends Message> extends CommandDefinition<T> {
   }
 }
 
-export interface DisconnectCommand<T extends Message> extends CommandDefinition<T> {
+export interface DisconnectCommand<T extends Message>
+  extends CommandDefinition<T> {
   command: {
     cmd: Commands.disconnect
   }
@@ -200,7 +201,7 @@ export interface SetPinCommand<T extends Message, R extends Message>
   extends CommandDefinition<T, R> {
   command: {
     cmd: Commands.setPin
-    value: string
+    value: string | undefined
   }
 }
 

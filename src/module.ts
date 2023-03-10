@@ -416,7 +416,7 @@ export class AusweisModule {
    */
 
   // TODO Make sure 5 / 6 digits
-  public async setPin(pin: string) {
+  public async setPin(pin: string | undefined) {
     return this.sendCmd(setPinCmd(pin))
   }
 

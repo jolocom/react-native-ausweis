@@ -360,7 +360,7 @@ export const setCanCmd = (
 }
 
 export const setPinCmd = (
-  pin: string,
+  pin: string | undefined,
 ): SetPinCommand<
   EnterPinMessage,
   | EnterPinMessage

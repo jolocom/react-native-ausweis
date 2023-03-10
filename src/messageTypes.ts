@@ -72,6 +72,7 @@ export interface AuthMessage extends Message {
     major: string
     message?: string
     minor?: string
+    reason: string
   }
 }
 
