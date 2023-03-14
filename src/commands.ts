@@ -67,14 +67,12 @@ export const readerHandler: HandlerDefinition<ReaderMessage> = {
 
 export const badStateHandler: HandlerDefinition<BadStateMessage> = {
   canHandle: [Messages.badState],
-  handle: (message, _, { reject }) => {
-    return reject(message.error)
-  },
+  handle: (message, _, { reject }) => reject(message.error),
 }
 
 export const statusHandler: HandlerDefinition<StatusMessage> = {
   canHandle: [Messages.status],
-  handle: (message, { handleStatus }, { reject }) => {
+  handle: (message, { handleStatus }, __) => {
     return handleStatus && handleStatus(message)
   },
 }

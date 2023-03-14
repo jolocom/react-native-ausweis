@@ -265,13 +265,15 @@ export class AusweisModule {
   private onMessage(message: Message) {
     this.log(message)
 
-    // FIXME: background handlers can't be called without a "current operation"
-    const placeholderCallbacks = {
-      resolve: () => undefined,
-      reject: () => undefined,
-    }
-
     this.messageEmitter.emit(message.msg, message as any)
+
+    if (this.currentOperation) {
+      const { handler, callbacks } = this.currentOperation
+
+      if (handler.canHandle.some((msg) => msg === message.msg)) {
+        handler.handle(message, this.eventHandlers, callbacks)
+      }
+    }
 
     const { handle } =
       this.handlers.find(({ canHandle }) =>
@@ -279,27 +281,18 @@ export class AusweisModule {
       ) || {}
 
     if (handle) {
+      // FIXME: background handlers can't be called without a "current operation"
+      const placeholderCallbacks = {
+        resolve: () => undefined,
+        reject: () => undefined,
+      }
+
       return handle(
         message,
         this.eventHandlers,
-        this.currentOperation
-          ? this.currentOperation.callbacks
-          : placeholderCallbacks,
+        this.currentOperation?.callbacks ?? placeholderCallbacks,
       )
     }
-
-    if (!this.currentOperation) {
-      this.unprocessedMessages.push(message)
-      return
-    }
-
-    const { handler, callbacks } = this.currentOperation
-
-    if (handler.canHandle.some((msg) => msg === message.msg)) {
-      return handler.handle(message, this.eventHandlers, callbacks)
-    }
-
-    this.unprocessedMessages.push(message)
   }
 
   private fireNextCommand() {
@@ -313,30 +306,25 @@ export class AusweisModule {
     }
   }
 
-  private async waitTillCondition<T extends Message>(
-    filter: Filter<T>,
-    pollInterval = 1500,
-  ): Promise<T> {
-    await delay(pollInterval)
-
-    const relevantResponse = this.unprocessedMessages.filter(filter)
-
-    // TODO Drop the read message from the buffer if all was processed
-    if (relevantResponse.length === 1) {
-      this.currentOperation = undefined
-      return relevantResponse[0] as T
-    } else {
-      return this.waitTillCondition(filter, pollInterval)
-    }
-  }
-
-  public async checkIfCardWasRead() {
-    return this.waitTillCondition(
-      (message: EnterPinMessage | EnterPukMessage | EnterCanMessage) =>
-        [Messages.enterPin, Messages.enterPuk, Messages.enterCan].includes(
-          message.msg,
-        ),
-    )
+  public async checkIfCardWasRead(): Promise<
+    Messages.enterPin | Messages.enterPuk | Messages.enterCan
+  > {
+    const relevantMessages = [
+      Messages.enterPin,
+      Messages.enterPuk,
+      Messages.enterCan,
+    ]
+    return new Promise((res) => {
+      const resolveMessage = (message) => {
+        res(message)
+        relevantMessages.forEach((messageType) => {
+          this.messageEmitter.removeListener(messageType, resolveMessage)
+        })
+      }
+      relevantMessages.forEach((messageType) =>
+        this.messageEmitter.addListener(messageType, resolveMessage),
+      )
+    })
   }
 
   /**
