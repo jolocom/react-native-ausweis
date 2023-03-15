@@ -227,8 +227,6 @@ export class AusweisModule {
     command,
     handler,
   }: CommandDefinition<T>): Promise<T> {
-    this.log(command)
-
     return new Promise((resolve, reject) => {
       if (!this.isInitialized) {
         return reject(new SdkNotInitializedError())
@@ -250,6 +248,7 @@ export class AusweisModule {
             },
           },
         }
+        this.log(command)
         this.nativeAa2Module.sendCMD(JSON.stringify(command))
       } else {
         this.queuedOperations.push({
