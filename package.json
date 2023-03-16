@@ -17,7 +17,7 @@
     "test": "jest --verbose",
     "prettier:fix": "prettier src/ --write",
     "prettier:check": "prettier src/ --check",
-    "postinstall": "./fetch-iOS-AA2-SDK.sh"
+    "postinstall": "$PWD/fetch-iOS-AA2-SDK.sh"
   },
   "repository": {
     "type": "git",
