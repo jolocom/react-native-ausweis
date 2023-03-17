@@ -74,5 +74,5 @@ repositories {
 dependencies {
     //noinspection GradleDynamicVersion
     implementation 'com.facebook.react:react-native:+'  // From node_modules
-    implementation 'com.governikus:ausweisapp:1.26.2'
+    implementation 'com.governikus:ausweisapp:1.26.3'
 }
