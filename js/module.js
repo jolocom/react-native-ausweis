@@ -71,16 +71,12 @@ class AusweisModule {
     }
     async disconnectAa2Sdk() {
         return new Promise((resolve, reject) => {
-            if (this.currentOperation !== undefined ||
-                this.queuedOperations.length !== 0) {
-                reject(new Error('Command queue not empty'));
-            }
-            const initCmd = (0, commands_1.disconnectSdkCmd)(() => {
+            const disconnectCmd = (0, commands_1.disconnectSdkCmd)(() => {
                 this.isInitialized = false;
                 this.currentOperation.callbacks.resolve();
                 return this.clearCurrentOperation();
             });
-            this.currentOperation = Object.assign(Object.assign({}, initCmd), { callbacks: { resolve, reject } });
+            this.currentOperation = Object.assign(Object.assign({}, disconnectCmd), { callbacks: { resolve, reject } });
             this.nativeAa2Module.disconnectSdk();
         });
     }

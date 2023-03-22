@@ -175,14 +175,7 @@ export class AusweisModule {
 
   public async disconnectAa2Sdk() {
     return new Promise((resolve, reject) => {
-      if (
-        this.currentOperation !== undefined ||
-        this.queuedOperations.length !== 0
-      ) {
-        reject(new Error('Command queue not empty'))
-      }
-
-      const initCmd = disconnectSdkCmd(() => {
+      const disconnectCmd = disconnectSdkCmd(() => {
         this.isInitialized = false
 
         this.currentOperation.callbacks.resolve()
@@ -191,7 +184,7 @@ export class AusweisModule {
       })
 
       this.currentOperation = {
-        ...initCmd,
+        ...disconnectCmd,
         callbacks: { resolve, reject },
       }
 
