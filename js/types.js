@@ -14,7 +14,7 @@ var AccessRightsFields;
     AccessRightsFields["Address"] = "Address";
     AccessRightsFields["BirthName"] = "BirthName";
     AccessRightsFields["FamilyName"] = "FamilyName";
-    AccessRightsFields["GivenNames"] = " GivenNames";
+    AccessRightsFields["GivenNames"] = "GivenNames";
     AccessRightsFields["PlaceOfBirth"] = "PlaceOfBirth";
     AccessRightsFields["DateOfBirth"] = "DateOfBirth";
     AccessRightsFields["DoctoralDegree"] = "DoctoralDegree";

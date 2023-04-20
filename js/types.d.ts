@@ -29,7 +29,7 @@ export declare enum AccessRightsFields {
     Address = "Address",
     BirthName = "BirthName",
     FamilyName = "FamilyName",
-    GivenNames = " GivenNames",
+    GivenNames = "GivenNames",
     PlaceOfBirth = "PlaceOfBirth",
     DateOfBirth = "DateOfBirth",
     DoctoralDegree = "DoctoralDegree",

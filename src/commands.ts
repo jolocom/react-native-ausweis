@@ -587,7 +587,7 @@ export const setCardCmd = (
 }
 
 export const setNewPinCmd = (
-  pin: string,
+  pin?: string,
 ): SetNewPinCommand<ChangePinMessage, ChangePinMessage> => {
   return {
     command: { cmd: Commands.setNewPin, value: pin },

@@ -161,7 +161,7 @@ export interface SetPinCommand<T extends Message, R extends Message> extends Com
 export interface SetNewPinCommand<T extends Message, R extends Message> extends CommandDefinition<T, R> {
     command: {
         cmd: Commands.setNewPin;
-        value: string;
+        value?: string;
     };
 }
 export interface SetCanCommand<T extends Message, R extends Message> extends CommandDefinition<T, R> {

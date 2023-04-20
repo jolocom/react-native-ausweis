@@ -209,7 +209,7 @@ export interface SetNewPinCommand<T extends Message, R extends Message>
   extends CommandDefinition<T, R> {
   command: {
     cmd: Commands.setNewPin
-    value: string
+    value?: string
   }
 }
 

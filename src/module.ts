@@ -462,7 +462,7 @@ export class AusweisModule {
    * @see https://www.ausweisapp.bund.de/sdk/commands.html#set-new-pin
    */
 
-  public async setNewPin(pin: string) {
+  public async setNewPin(pin?: string) {
     return this.sendCmd(setNewPinCmd(pin))
   }
 

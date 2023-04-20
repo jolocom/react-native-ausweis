@@ -25,4 +25,4 @@ export declare const interruptFlowCmd: () => InterruptCommand;
 export declare const getAccessRightsCmd: () => GetAccessRightsCommand<AccessRightsMessage>;
 export declare const setAccessRightsCmd: (optionalFields: Array<AccessRightsFields>) => SetAccessRightsCommand<AccessRightsMessage>;
 export declare const setCardCmd: (readerName: string, simulatorData?: SimulatorData) => SetCardCommand;
-export declare const setNewPinCmd: (pin: string) => SetNewPinCommand<ChangePinMessage, ChangePinMessage>;
+export declare const setNewPinCmd: (pin?: string) => SetNewPinCommand<ChangePinMessage, ChangePinMessage>;

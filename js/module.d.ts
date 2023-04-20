@@ -53,7 +53,7 @@ export declare class AusweisModule {
     cancelFlow(): Promise<import("./messageTypes").AuthMessage>;
     setAccessRights(optionalFields: Array<AccessRightsFields>): Promise<import("./messageTypes").AccessRightsMessage>;
     getAccessRights(): Promise<import("./messageTypes").AccessRightsMessage>;
-    setNewPin(pin: string): Promise<import("./messageTypes").ChangePinMessage>;
+    setNewPin(pin?: string): Promise<import("./messageTypes").ChangePinMessage>;
     startChangePin(handleInterrupt?: boolean, status?: boolean, messages?: ScannerMessages): Promise<import("./messageTypes").ChangePinMessage>;
     interruptFlow(): void;
 }
