@@ -1,3 +1,4 @@
+import { FailureCodes } from './failure_codes'
 import { AccessRights, CardInfo } from './types'
 
 export enum Messages {
@@ -72,7 +73,7 @@ export interface AuthMessage extends Message {
     major: string
     message?: string
     minor?: string
-    reason?: string
+    reason?: FailureCodes
   }
 }
 
@@ -120,6 +121,7 @@ export interface EnterCanMessage extends Message {
 export interface ChangePinMessage extends Message {
   msg: Messages.changePin
   success?: boolean
+  reason?: FailureCodes
 }
 
 export interface InsertCardMessage extends Message {

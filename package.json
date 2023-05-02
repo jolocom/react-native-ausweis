@@ -17,7 +17,7 @@
     "test": "jest --verbose",
     "prettier:fix": "prettier src/ --write",
     "prettier:check": "prettier src/ --check",
-    "postinstall": "project_dir=$PWD; echo \"Notice: updating AusweisApp2 git module\"; path=\"ios/Frameworks/AusweisApp2-SDK-iOS\"; url=\"https://github.com/Governikus/AusweisApp2-SDK-iOS\"; if [[ -d \"${path}/.git\" ]]; then echo \"Notice: git pull submodule $(realpath ${path})\"; cd \"${path}\"; git pull; else rm -r \"${path}\"; git -c advice.detachedHead=false clone --depth 1 $url $path --branch 1.26.3 --single-branch; fi; cd \"${project_dir}\""
+    "postinstall": "project_dir=$PWD; echo \"Notice: updating AusweisApp2 git module\"; path=\"ios/Frameworks/AusweisApp2-SDK-iOS\"; url=\"https://github.com/Governikus/AusweisApp2-SDK-iOS\"; if [[ -d \"${path}/.git\" ]]; then echo \"Notice: git pull submodule $(realpath ${path})\"; cd \"${path}\"; git pull; else rm -r \"${path}\"; git -c advice.detachedHead=false clone --depth 1 $url $path --branch 1.26.4 --single-branch; fi; cd \"${project_dir}\""
   },
   "repository": {
     "type": "git",
