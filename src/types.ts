@@ -29,6 +29,10 @@ export type SimulatorData = {
     shortFileId: string
     content: string
   }>
+  keys: Array<{
+    id: number
+    private: string
+  }>
 }
 
 export enum AccessRightsFields {

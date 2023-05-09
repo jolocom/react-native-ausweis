@@ -96,10 +96,6 @@ public class Aa2SdkModule extends ReactContextBaseJavaModule implements Activity
                 SdkInitializationException.class.getSimpleName()
             );
         }
-
-        Log.i(TAG, "SDK initialized successfully.");
-
-        this.eventEmitter.emit(EventName.ON_SDK_INIT);
     }
 
     @ReactMethod

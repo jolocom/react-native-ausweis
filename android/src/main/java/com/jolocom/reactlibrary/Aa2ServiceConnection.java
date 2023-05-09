@@ -53,13 +53,15 @@ public class Aa2ServiceConnection implements ServiceConnection {
         this.sdk = sdk;
         this.sdkSession = sdkSession;
 
-        Log.i(TAG, "Service connection established successfully.");
+        Log.i(TAG, "SDK initialized successfully.");
+
+        this.eventEmitter.emit(EventName.ON_SDK_INIT);
     }
 
-    // TODO What clean-up do we need to do when disconnected from the background service?
     @Override
     public void onServiceDisconnected(ComponentName className) {
-        // ...
+        this.sdk = null;
+        this.sdkSession = null;
     }
 
     public void sendCommand(String command) {
