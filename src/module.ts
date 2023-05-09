@@ -156,7 +156,7 @@ export class AusweisModule {
   }
 
   public async initAa2Sdk() {
-    if (this.currentOperation.command.cmd === Commands.init) {
+    if (this.currentOperation?.command?.cmd === Commands.init) {
       return
     }
 
@@ -179,7 +179,7 @@ export class AusweisModule {
   }
 
   public async disconnectAa2Sdk() {
-    if (this.currentOperation.command.cmd === Commands.disconnect) {
+    if (this.currentOperation?.command?.cmd === Commands.disconnect) {
       return
     }
 
