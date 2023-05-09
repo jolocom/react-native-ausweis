@@ -36,6 +36,7 @@ import {
 } from './commands'
 import {
   CommandDefinition,
+  Commands,
   disruptiveCommands,
   EventHandlers,
   HandlerDefinition,
@@ -155,6 +156,10 @@ export class AusweisModule {
   }
 
   public async initAa2Sdk() {
+    if (this.currentOperation.command.cmd === Commands.init) {
+      return
+    }
+
     return new Promise((resolve, reject) => {
       const initCmd = initSdkCmd(() => {
         this.isInitialized = true
@@ -174,6 +179,10 @@ export class AusweisModule {
   }
 
   public async disconnectAa2Sdk() {
+    if (this.currentOperation.command.cmd === Commands.disconnect) {
+      return
+    }
+
     return new Promise((resolve, reject) => {
       const disconnectCmd = disconnectSdkCmd(() => {
         this.isInitialized = false
@@ -194,7 +203,7 @@ export class AusweisModule {
 
   private rejectCurrentOperation(errorMessage: string) {
     if (!this.currentOperation) {
-      throw new Error('TODO')
+      return
     }
 
     this.currentOperation.callbacks.reject(new Error(errorMessage))
